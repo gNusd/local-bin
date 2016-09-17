@@ -1,0 +1,54 @@
+#!/usr/bin/env python3
+
+
+import urllib.request
+import tarfile
+import os
+import subprocess
+import shutil
+
+
+class pkg(object):
+
+    def __init__(self, url):
+        self.url = url
+
+    def install(self):
+        os.chdir("/tmp/")
+        tmp = self.url.split("/")
+        pkgname = tmp[len(tmp)-1]
+        tmp = pkgname.split(".")
+        pkgdir = tmp[0]
+
+        ## downloading pkg
+        f = urllib.request.urlopen(self.url)
+        data = f.read()
+        with open(pkgname, "wb") as code:
+            code.write(data)
+
+        ## extracting archive
+        archive = tarfile.open(pkgname, 'r:gz')
+        archive.extractall('.')
+
+        ## removing archive
+        os.remove(pkgname)
+
+        ## building pkg
+        subprocess.call(["makepkg", "-s"], cwd=pkgdir)
+        for tar in os.listdir(pkgdir):
+            if tar.endswith(".pkg.tar"):
+                tar_pkg = tar
+
+        ## installing pkg
+        subprocess.call(["sudo", "pacman", "-U", "--noconfirm", tar_pkg],
+                        cwd=pkgdir)
+
+        ## removing dir
+        shutil.rmtree(pkgdir)
+
+if __name__=="__main__":
+    cower = pkg("https://aur.archlinux.org/cgit/aur.git/snapshot/cower.tar.gz")
+    pacaur = pkg("https://aur.archlinux.org/cgit/aur.git/snapshot/pacaur.tar.gz")
+
+    cower.install()
+    pacaur.install()
