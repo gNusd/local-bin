@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo sshuttle -r gnus@stimagst.com 0.0.0.0/0 -vv
