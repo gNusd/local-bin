@@ -1,4 +1,0 @@
-#!/bin/bash
-
-
-sudo sshuttle -r root@159.203.177.223  0.0.0.0/0 -vv
