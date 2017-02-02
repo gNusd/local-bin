@@ -1,4 +1,0 @@
-#!/bin/bash
-
-
-mpv rtmp://jblive.videocdn.scaleengine.net/jb-live/play/jblive.stream
