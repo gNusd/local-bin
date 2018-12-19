@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+
+def convert(media_dir, files):
+
+    for File in files:
+        filename, file_ext = os.path.splitext(File)
+
+        if file_ext == ".flac":
+            newfilename = filename + ".mp3"
+            subprocess.call(["ffmpeg","-i",File,"-qscale:a", "0",newfilename], cwd=media_dir)
+            subprocess.call(["rm","-rf",File], cwd=media_dir)
+
+
+def walk(baseDir):
+    for subdir, dirs, files in os.walk(baseDir):
+        if files:
+            convert(subdir, files)
+
+
+if __name__ == '__main__':
+    walk("/home/gnus/import/music/")
+    
