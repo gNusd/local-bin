@@ -1,3 +1,0 @@
-#!/bin/bash
-
-mpv --ontop --no-border --autofit=540x324 --geometry=99%:2% $1 
