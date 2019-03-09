@@ -9,19 +9,19 @@ cp /tmp/lnet_scan /tmp/lnet_scan.back
 nmap -n -sn 192.168.2.* > /tmp/lnet_scan
 
 #collect the difference, only the lines with ip-numbers
-message=$(diff /tmp/lnet_scan.back /tmp/lnet_scan | grep 192)
+diff /tmp/lnet_scan.back /tmp/lnet_scan | grep 192 > /tmp/lnet_scan.diff
+sed -i 's/ Nmap scan report for //g' /tmp/lnet_scan.diff
 
-#get first char which indicates if the host came up or went away
-iostring="${message:0:1}"
+message=$(cat /tmp/lnet_scan.diff)
 
-#get first ip-number from the list
-computer="${message:23:17}"
-
-#show ip-number in notify if host came up
-if [ "$iostring" = \> ]; then
-        notify-send "$computer online" --icon=/home/gnus/nextCloud/bilder/icon/dev.png
-        fi
-#show ip-number in notify if host went away
-if [ "$iostring" = \< ]; then
-        notify-send "$computer offline" --icon=/home/gnus/nextCloud/bilder/icon/dev.png
-        fi
+if [[ "$message" == ">"* ]]; then
+	for i in $message; do
+		i=${i/>/}
+		notify-send "$i online" --icon=/home/gnus/nextCloud/bilder/icon/dev.png
+	done
+else
+	for i in $message; do
+		i=${i/</}
+		notify-send "$i offline" --icon=/home/gnus/nextCloud/bilder/icon/dev.png
+	done
+fi
