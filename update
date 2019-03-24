@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-tmux new  'ssh gnus@192.168.1.113' \; split-window -h 'ssh gnus@192.168.1.234'\; split-window -h 'ssh gnus@207.154.212.191' \; split-window -h 'ssh gnus@192.168.2.68' \; split-window -h 'ssh gnus@192.168.1.99' \; select-layout even-horizontal \; set-option -w synchronize-panes \;
+tmux rename-session Update \; new-window -t Update:1 'ssh gnus@192.168.1.113' \; split-window -v 'ssh gnus@192.168.1.234' \; split-window -v 'ssh gnus@192.168.1.99' \; split-window -v 'ssh gnus@207.154.212.191' \; split-window -v 'ssh gnus@192.168.2.121' \; set-window-option synchronize-panes on\; select-layout even-vertical \;
