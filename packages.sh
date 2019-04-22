@@ -8,6 +8,7 @@
 # /*  \__, |_| |_|\__,_|___/ */
 # /*  |___/                  */
 # /***************************/
+#
 # backing up package list and restoring packages on a new install
 
 path="$HOME/nextcloud/backup/packages/"
@@ -25,10 +26,15 @@ restore () {
 
 }
 
-if [ -z $1 ]
-then
+instructions () {
+		echo "Display this message with help (--help)"
 		echo "backup (--backup) or restore (--restore)"
 		exit
+}
+
+if [ -z $1 ]
+then
+		instructions
 else
 		if [ $1 = "--backup" ]
 		then
@@ -38,11 +44,9 @@ else
 				restore
 		elif [ $1 = "--help" ]
 		then
-				echo "backup (--backup) or restore (--restore)"
-				exit
+				instructions
 		else
-				echo "backup (--backup) or restore (--restore)"
-				exit
+				instructions
 		fi
 fi
 
