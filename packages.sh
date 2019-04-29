@@ -27,8 +27,8 @@ restore () {
 }
 
 instructions () {
-		echo "Display this message with help (--help)"
-		echo "backup (--backup) or restore (--restore)"
+		echo "Display this message with -h (--help)"
+		echo "pass -b (--backup) or -r (--restore)"
 		exit
 }
 
@@ -36,13 +36,13 @@ if [ -z $1 ]
 then
 		instructions
 else
-		if [ $1 = "--backup" ]
+		if [ $1 = "--backup" ] || [ $1 = "-b" ]
 		then
 				backup
-		elif [ $1 = "--restore" ]
+		elif [ $1 = "--restore" ] || [ $1 = "-r" ]
 		then
 				restore
-		elif [ $1 = "--help" ]
+		elif [ $1 = "--help" ] || [ $1 = "-h" ]
 		then
 				instructions
 		else

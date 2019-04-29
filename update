@@ -1,3 +1,10 @@
 #!/usr/bin/env bash
 
-tmux rename-session Update \; new-window -t Update 'ssh gnus@192.168.1.113' \; split-window -v 'ssh gnus@192.168.1.234' \; split-window -v 'ssh gnus@192.168.1.99' \; split-window -v 'ssh gnus@207.154.212.191' \; split-window -v 'ssh gnus@192.168.2.121' \; select-layout even-vertical \;
+ssh_user="ssh gnus@"
+pane1="192.168.1.113"
+pane2="192.168.1.234"
+pane3="192.168.1.99"
+pane4="207.154.212.191"
+pane5="192.168.2.121"
+
+tmux rename-session Update \; new-window -t Update $ssh_user$pane1 \; split-window -v $ssh_user$pane2 \; split-window -v $ssh_user$pane3 \; split-window -v $ssh_user$pane4 \; split-window -v $ssh_user$pane5 \; select-layout even-vertical \;
