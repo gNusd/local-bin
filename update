@@ -6,5 +6,6 @@ pane2="192.168.1.234"
 pane3="192.168.1.99"
 pane4="207.154.212.191"
 pane5="192.168.2.121"
+pane6="192.168.2.82"
 
-tmux rename-session Update \; new-window -t Update $ssh_user$pane1 \; split-window -v $ssh_user$pane2 \; split-window -v $ssh_user$pane3 \; split-window -v $ssh_user$pane4 \; split-window -v $ssh_user$pane5 \; select-layout even-vertical \;
+tmux rename-session Update \; new-window -t Update split-window -v $ssh_user$pane1 \; split-window -v $ssh_user$pane2 \; split-window -v $ssh_user$pane3 \; split-window -v $ssh_user$pane4 \; split-window -v $ssh_user$pane5 \;  split-window -v $ssh_user$pane6 \; select-layout even-vertical \;
