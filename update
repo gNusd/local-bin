@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
 ssh_user="ssh gnus@"
-pane1="192.168.1.113"
-pane2="192.168.1.234"
-pane3="192.168.1.99"
-pane4="207.154.212.191"
-pane5="192.168.2.121"
-pane6="192.168.2.82"
+pane1="192.168.1.113"   # Deckard
+pane2="192.168.1.234"   # tyrellCorp
+pane3="192.168.1.99"    # JF Sebastian
+pane4="207.154.212.191" # Stimagst
+pane5="192.168.2.120"   # Voight-Kampff
+pane6="94.237.93.110"   # off-world
 
-tmux rename-session Update \; new-window -t Update split-window -v $ssh_user$pane1 \; split-window -v $ssh_user$pane2 \; split-window -v $ssh_user$pane3 \; split-window -v $ssh_user$pane4 \; split-window -v $ssh_user$pane5 \;  split-window -v $ssh_user$pane6 \; select-layout even-vertical \;
+command1="sudo apt update && sudo apt upgrade"
+command2="sudo pkcon refresh -p && sudo pkcon update -p"
+
+
+tmux rename-session Update \; new-window -t Update split-window -h $ssh_user$pane1 send $command2 \; split-window -h $ssh_user$pane2  \; send $command1 \; split-window -h $ssh_user$pane3  \; send $command1 \; split-window -h $ssh_user$pane4  \; send $command1 \; split-window -h $ssh_user$pane5  \; send $command2 \;  split-window -h $ssh_user$pane6  \; send $command1 \; select-layout even-vertical \;

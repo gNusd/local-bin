@@ -1,0 +1,24 @@
+#!/bin/bash
+
+path=$(pwd)
+cd  $path
+
+if git status &>/dev/null; then
+        if git status -uno -s | grep -q . ; then
+				git status -s
+				read -r -p "Do you want to add all files [y/N] " response
+				if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]
+				then
+						git add .
+				else
+						exit
+				fi
+		fi
+fi
+
+
+
+message=$(date +'%Y-%m-%d')
+
+git commit -m "$message"
+git push
