@@ -1,15 +1,17 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-ssh_user="ssh $USER@"
-pane1="192.168.1.113"   # Deckard
-pane2="192.168.1.234"   # tyrellCorp
-pane3="192.168.1.99"    # JF Sebastian
-pane4="207.154.212.191" # Stimagst
-pane5="192.168.2.120"   # Voight-Kampff
-pane6="94.237.93.110"   # off-world
-
-command1=$("sudo apt update && sudo apt upgrade")
-command2=$("sudo pkcon refresh -p && sudo pkcon update -p")
-send="C-m"
-
-tmux rename-session Update \; new-window -t Update split-window -h $ssh_user$pane1 send $command2 $send \; split-window -h $ssh_user$pane2  \; send $command1 $send \; split-window -h $ssh_user$pane3  \; send $command1 $send \; split-window -h $ssh_user$pane4  \; send $command1 $send \; split-window -h $ssh_user$pane5  \; send $command2 $send \;  split-window -h $ssh_user$pane6  \; send $command1 $send \; select-layout even-vertical \;
+tmux new-session -d -s main ;
+tmux split-window -h ;
+tmux select-pane -L
+tmux send-keys -t main 'deckard' C-m
+tmux split-pane -v
+tmux send-keys -t main 'tyrellCorp' C-m
+tmux split-pane -v
+tmux send-keys -t main 'stimagst' C-m
+tmux select-pane -R
+# tmux send-keys -t main 'jfsebastian' C-m
+# tmux split-pane -v
+tmux send-keys -t main 'ssh gnus@192.168.2.120' C-m
+tmux split-pane -v
+tmux send-keys -t main 'off-world' C-m
+tmux attach-session -d -t main
