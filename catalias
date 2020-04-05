@@ -1,0 +1,18 @@
+#!/bin/sh
+
+choice="zshalias ssh"
+result=$(echo "$choice" | grep "$1")
+[ -z "$result" ] && input="$1" && unset "$1" && filename="$HOME/repositories/dotfiles/zsh_alias" && [ ! -z "$input" ] && grp="zshalias"
+
+[ "$1" = "zshalias" ] || [ -z "$1" ] && filename="$HOME/repositories/dotfiles/zsh_alias" && [ ! -z "$2" ] || [ ! -z "$input" ] && grp="zshalias"
+[ "$1" = "ssh" ] && filename="$HOME/repositories/dotfiles/.ssh/ssh_alias" && [ ! -z "$2" ] && grp="ssh" && input="$2"
+
+sr1=$(grep '^##' "$filename" | sed "s/##\(.*\):\(.*\)/\1 - \2/g")
+sr2=$(grep '^##' "$filename" | sed "s/##\(.*\):\(.*\)/\1 - \2/g" | grep -iF "$input" | sed "s/.*\s-\s//g")
+sr3=$(grep '^##' "$filename" | sed "s/##\(.*\):\(.*\)/\1 - \2/g" | grep -iF "$input")
+
+[ -z "$grp" ] && line="$sr1"
+[ "$grp" = "ssh" ] && line="$sr2"
+[ "$grp" = "zshalias" ] && line="$sr3"
+[ -z "$line" ] && line="$sr1"
+echo "$line"
