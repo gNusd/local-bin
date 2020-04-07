@@ -1,0 +1,10 @@
+#!/bin/sh
+
+address=$(xclip -o -selection clipboard)
+result=$(echo "$address" | grep "youtube")
+not_rss=$(echo "$address" | grep "videos.xml")
+
+[ ! -z "$not_rss" ] || [ -z "$result" ] && exit
+feed=$(echo "$address" | sed "s/.*\/channel\///g;s/\/.*//g")
+rss="https://www.youtube.com/feeds/videos.xml?channel_id=$feed"
+echo "$rss" | xclip -selection clipboard

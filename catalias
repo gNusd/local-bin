@@ -1,18 +1,32 @@
 #!/bin/sh
+#
+# 	  mmmm  m mm   m   m   mmm
+# 	 #" "#  #"  #  #   #  #   "
+# 	 #   #  #   #  #   #   """m
+# 	 "#m"#  #   #  "mm"#  "mmm"
+#  	  m  #
+#      ""
+# a scrip parsing dotfiles for aliases and key bindings
 
-choice="zshalias ssh"
-result=$(echo "$choice" | grep "$1")
-[ -z "$result" ] && input="$1" && unset "$1" && filename="$HOME/repositories/dotfiles/zsh_alias" && [ ! -z "$input" ] && grp="zshalias"
+# GLOBAL VARIABLES
+BASE_DIR="$HOME/repositories/dotfiles"
+CHOISE="zshalias ssh nvim"
+PATERN="##"
+INPUT=""
 
-[ "$1" = "zshalias" ] || [ -z "$1" ] && filename="$HOME/repositories/dotfiles/zsh_alias" && [ ! -z "$2" ] || [ ! -z "$input" ] && grp="zshalias"
-[ "$1" = "ssh" ] && filename="$HOME/repositories/dotfiles/.ssh/ssh_alias" && [ ! -z "$2" ] && grp="ssh" && input="$2"
+# Checking if $1 is in CHOISE
+result=$(echo "$CHOISE" | grep "$1")
 
-sr1=$(grep '^##' "$filename" | sed "s/##\(.*\):\(.*\)/\1 - \2/g")
-sr2=$(grep '^##' "$filename" | sed "s/##\(.*\):\(.*\)/\1 - \2/g" | grep -iF "$input" | sed "s/.*\s-\s//g")
-sr3=$(grep '^##' "$filename" | sed "s/##\(.*\):\(.*\)/\1 - \2/g" | grep -iF "$input")
+# Checking which query to run
+[ -z "$result" ] && INPUT="$1" && unset "$1" && filename="$BASE_DIR/zsh_alias"
+[ "$1" = "zshalias" ] || [ -z "$1" ] && filename="$BASE_DIR/zsh_alias"
+[ "$1" = "ssh" ] && filename="$BASE_DIR/.ssh/ssh_alias" && [ ! -z "$2" ] && grp="ssh" && INPUT="$2"
+[ "$1" = "nvim" ] && filename="$BASE_DIR/.config/nvim/init.vim" && PATERN='"##' && [ ! -z "$2" ] && INPUT="$2"
+
+sr1=$(grep "^$PATERN" "$filename" | sed "s/$PATERN\(.*\):\(.*\)/\1 - \2/g" | grep -iF "$INPUT")
+sr2=$(echo "$sr1" | sed "s/.*\s-\s//g")
 
 [ -z "$grp" ] && line="$sr1"
-[ "$grp" = "ssh" ] && line="$sr2"
-[ "$grp" = "zshalias" ] && line="$sr3"
-[ -z "$line" ] && line="$sr1"
+[ "$grp" = "ssh" ] && line="$sr2" && echo "$line" | xclip -selection clipboard
+
 echo "$line"
