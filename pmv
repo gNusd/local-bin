@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+[ -z "$1" ] && exit
+if ! pgrep -x "$1" > /dev/null
+then
+		echo "$1 is not a running process."
+		exit
+fi
+
+reptyr $(pgrep "$1")
