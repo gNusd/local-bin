@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
+
 
 address=$(xclip -o -selection clipboard)
 result=$(echo "$address" | grep "http")
 
 [ -z "$result" ] && exit
 mpv --ontop --no-border --autofit=540x324 --geometry=99%:2% "$address" > /dev/null 2>&1 &
-exit

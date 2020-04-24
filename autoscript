@@ -1,8 +1,17 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 DIR="$HOME/bin"
 FILE="$1"
 
-printf "#!/usr/bin/env bash\n" > "$DIR/$FILE"
+printf "#!/usr/bin/env bash\n" >> "$DIR/$FILE"
+echo  " " >> "$DIR/$FILE"
+echo  "  ####  #    # #    #  ####  License: GNU GPLv3" >> "$DIR/$FILE"
+echo  " #    # ##   # #    # #      Year: 2020" >> "$DIR/$FILE"
+echo  " #      # #  # #    #  ####  " >> "$DIR/$FILE"
+echo  " #  ### #  # # #    #      # https://github.com/gnusd" >> "$DIR/$FILE"
+echo  " #    # #   ## #    # #    # http://gnusd.xyz " >> "$DIR/$FILE"
+echo  "  ####  #    #  ####   #### " >> "$DIR/$FILE"
+echo  " " >> "$DIR/$FILE"
+
 chmod +x "$DIR/$FILE"
 nvim "$DIR/$FILE"
