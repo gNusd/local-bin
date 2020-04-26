@@ -1,23 +1,28 @@
-#!/bin/sh
-#
-# author: gnus
-# https://github.com/gnusd/
+#!/usr/bin/env bash
+
+  ####  #    # #    #  ####  License: GNU GPLv3
+ #    # ##   # #    # #      Year: 2020
+ #      # #  # #    #  ####
+ #  ### #  # # #    #      # https://github.com/gnusd
+ #    # #   ## #    # #    # http://gnusd.xyz
+  ####  #    #  ####   ####
+
+# FILENAME ytRss
 
 # input, current selected clipboard
 address=$(xclip -o -selection clipboard)
 
-# checks so it's a youtube channel address
-result=$(echo "$address" | grep -P '(?=.*youtube)(?=.*channel)')
-echo "$result"
+# checks if it's a youtube channel or user
+check=$(echo "$address" | grep "youtube")
 
 # checks if $result is empthy, if so it insert blank line to clipboard and exit
-[ -z "$result" ] &&  echo "" | xclip -selection clipboard && exit
+[ -z "$check" ] &&  echo "" | xclip -selection clipboard && exit
 
-# some regex to get the name of the channel
-feed=$(echo "$address" | sed "s/.*\/channel\///g;s/\/.*//g")
+# some regex to get the name of the channel create rss link with channel name
+grep "channel" <<<"$address" && feed=$(echo "$address" | sed "s/^.*\/channel\/\(.*\)/\1/g") && rss="https://www.youtube.com/feeds/videos.xml?channel_id=$feed"
+# some regex to get the name of the user create rss link with user name
+grep "user" <<<"$address" && feed=$(echo "$address" | sed "s/^.*\/user\/\(.*\)/\1/g") && rss="https://www.youtube.com/feeds/videos.xml?user=$feed"
 
-# create rss link with channel name
-rss="https://www.youtube.com/feeds/videos.xml?channel_id=$feed"
 
 # echo to xclip
 echo "$rss" | xclip -selection clipboard

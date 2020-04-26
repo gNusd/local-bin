@@ -1,17 +1,28 @@
 #!/usr/bin/env bash
 
+  ####  #    # #    #  ####  License: GNU GPLv3
+ #    # ##   # #    # #      Year: 2020
+ #      # #  # #    #  ####
+ #  ### #  # # #    #      # https://github.com/gnusd
+ #    # #   ## #    # #    # http://gnusd.xyz
+  ####  #    #  ####   ####
+
 DIR="$HOME/bin"
 FILE="$1"
 
-printf "#!/usr/bin/env bash\n" >> "$DIR/$FILE"
-echo  " " >> "$DIR/$FILE"
-echo  "  ####  #    # #    #  ####  License: GNU GPLv3" >> "$DIR/$FILE"
-echo  " #    # ##   # #    # #      Year: 2020" >> "$DIR/$FILE"
-echo  " #      # #  # #    #  ####  " >> "$DIR/$FILE"
-echo  " #  ### #  # # #    #      # https://github.com/gnusd" >> "$DIR/$FILE"
-echo  " #    # #   ## #    # #    # http://gnusd.xyz " >> "$DIR/$FILE"
-echo  "  ####  #    #  ####   #### " >> "$DIR/$FILE"
-echo  " " >> "$DIR/$FILE"
+{
+		echo "#!/usr/bin/env bash"
+		echo  " "
+		echo  "  ####  #    # #    #  ####  License: GNU GPLv3"
+		echo  " #    # ##   # #    # #      Year: 2020"
+		echo  " #      # #  # #    #  ####  "
+		echo  " #  ### #  # # #    #      # https://github.com/gnusd"
+		echo  " #    # #   ## #    # #    # http://gnusd.xyz "
+		echo  "  ####  #    #  ####   ####"
+		echo  " "
+		echo  "# FILENAME: $FILE"
+
+} >> "$DIR/$FILE"
 
 chmod +x "$DIR/$FILE"
 nvim "$DIR/$FILE"
