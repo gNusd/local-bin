@@ -30,7 +30,8 @@ CONFIG_DIR="$HOME/repositories/dotfiles/.config"
 tmp_file="/tmp/lsba.tmp"
 
 # files to parse
-declare -A files=( 		[nvim]=$CONFIG_DIR/nvim/init.vim
+declare -A files=(
+						[nvim]=$CONFIG_DIR/nvim/init.vim
 						[ssh]=$DOTFILE_DIR/.ssh/alias.ssh
 						[zshalias]=$CONFIG_DIR/zsh/alias.zsh
 						[zshkeys]=$CONFIG_DIR/zsh/keybindings.zsh
