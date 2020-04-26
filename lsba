@@ -17,14 +17,29 @@ OPTION="$2"
 # binding and description variables
 binding="bind"
 description="desc"
+
+# display variables
 delimiter="¤"
 col="column -t -s $delimiter"
+
+# base directories
 DOTFILE_DIR="$HOME/repositories/dotfiles"
 CONFIG_DIR="$HOME/repositories/dotfiles/.config"
-tmp_file="/tmp/lsba.tmp"
-# files to parse
-declare -A files=([nvim]=$CONFIG_DIR/nvim/init.vim [ssh]=$DOTFILE_DIR/.ssh/alias.ssh [zshalias]=$CONFIG_DIR/zsh/alias.zsh [zshkeys]=$CONFIG_DIR/zsh/keybindings.zsh [vifmrc]=$CONFIG_DIR/vifm/vifmrc [tmuxrc]=$DOTFILE_DIR/.tmux.conf [tridactyl]=$CONFIG_DIR/tridactyl/tridactylrc)
 
+# output file
+tmp_file="/tmp/lsba.tmp"
+
+# files to parse
+declare -A files=( 		[nvim]=$CONFIG_DIR/nvim/init.vim
+						[ssh]=$DOTFILE_DIR/.ssh/alias.ssh
+						[zshalias]=$CONFIG_DIR/zsh/alias.zsh
+						[zshkeys]=$CONFIG_DIR/zsh/keybindings.zsh
+						[vifmrc]=$CONFIG_DIR/vifm/vifmrc
+						[tmuxrc]=$DOTFILE_DIR/.tmux.conf
+						[tridactyl]=$CONFIG_DIR/tridactyl/tridactylrc
+				)
+
+# a list of the names (keys) of $files
 file_options=$(echo "${!files[@]}")
 
 # function that parse the files, it greps all lines starting with # " /* and looks for $bindings: " and $description: " and the discards all but whats inside the " " behind the variables
@@ -36,12 +51,14 @@ parse_stream() {
 # function that echos filename, content of $stream and an empathy line to a temporary file named lsba.tmp in /tmp
 echo_stream() {
 				    filename="${file##/*/}"
-					echo "$filename"  >> "$tmp_file"
-				    check=$(echo "$filename" | grep "alias")
-			        [ -z "$check" ] && 	echo -e "\tBINDING\t¤\tDESCRIPTION" | $col >> "$tmp_file"
-			        [ ! -z "$check" ] && echo -e "\tALIAS\t¤\tDESCRIPTION" | $col >> "$tmp_file"
-					echo "$stream" | $col >> "$tmp_file"
-					echo " " >> "$tmp_file"
+					{
+						echo "$filename"
+						check=$(echo "$filename" | grep "alias")
+						[ -z "$check" ] && 	echo -e "\tBINDING\t¤\tDESCRIPTION" | $col
+						[ ! -z "$check" ] && echo -e "\tALIAS\t¤\tDESCRIPTION" | $col
+						echo "$stream" | $col
+						echo " "
+				    } >> "$tmp_file"
 		}
 
 # function that display the help message
@@ -54,11 +71,12 @@ display_help() {
 				    echo -e "\t ¤ no option displays all bindings and aliases" | $col
 }
 
+# displays the $tmp_file in less and removes it after viewing
 display_remove_tmp_file() {
 				    less "$tmp_file"
 				    [ -f  "$tmp_file" ] && rm "$tmp_file"
-
 }
+
 # case statement that handles the different options displayed in the help text
 case $FLAG in
 		*h)
