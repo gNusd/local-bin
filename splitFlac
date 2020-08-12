@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+  ####  #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+  ####  #    #  ####   ####
+
+# FILENAME: splitFlac
+cuebreakpoints *.cue | shnsplit -o flac *.flac
+cuetag *.cue split-track*.flac
+

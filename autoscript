@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-  ####  #    # #    #  ####  License: GNU GPLv3
+  ####  #    # #    #  ####  License: GNU GPLv3D
  #    # ##   # #    # #      Year: 2020
  #      # #  # #    #  ####
  #  ### #  # # #    #      # https://github.com/gnusd
@@ -8,10 +8,10 @@
   ####  #    #  ####   ####
 
 DIR="$HOME/bin"
+SHEBANG="#!/usr/bin/env bash"
 FILE="$1"
-
 {
-		echo "#!/usr/bin/env bash"
+		echo "$SHEBANG"
 		echo  " "
 		echo  "  ####  #    # #    #  ####  License: GNU GPLv3"
 		echo  " #    # ##   # #    # #      Year: 2020"

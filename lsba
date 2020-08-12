@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
   ####  #    # #    #  ####  License: GNU GPLv3
- #    # ##   # #    # #      Year: 2020
- #      # #  # #    #  ####
- #  ### #  # # #    #      # https://github.com/gnusd
- #    # #   ## #    # #    # http://gnusd.xyz
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
   ####  #    #  ####   ####
 
 # Script for parsing config files for keybindings or alias pattern
-# search looking for $binding: " " and $description: " " in comments in the config files
+# search looking for $binding " " and $description " " in comments in the config files
 
 # User input variables
 FLAG="$1"
 OPTION="$2"
 
 # binding and description variables
-binding="bind"
-description="desc"
+binding="bind:"
+description="desc:"
 
 # display variables
 delimiter="¤"
@@ -24,58 +24,60 @@ col="column -t -s $delimiter"
 
 # base directories
 DOTFILE_DIR="$HOME/repositories/dotfiles"
-CONFIG_DIR="$HOME/repositories/dotfiles/.config"
+CONFIG_DIR="$DOTFILE_DIR/.config"
 
 # output file
 tmp_file="/tmp/lsba.tmp"
 
 # files to parse
 declare -A files=(
-						[nvim]=$CONFIG_DIR/nvim/init.vim
-						[ssh]=$DOTFILE_DIR/.ssh/alias.ssh
-						[zshalias]=$CONFIG_DIR/zsh/alias.zsh
-						[zshkeys]=$CONFIG_DIR/zsh/keybindings.zsh
-						[vifmrc]=$CONFIG_DIR/vifm/vifmrc
-						[tmuxrc]=$DOTFILE_DIR/.tmux.conf
-						[tridactyl]=$CONFIG_DIR/tridactyl/tridactylrc
-				)
+[nvim]=$CONFIG_DIR/nvim/init.vim
+[ssh]=$DOTFILE_DIR/.ssh/alias.ssh
+[zshrc]=$DOTFILE_DIR/.zshrc
+[zshalias]=$CONFIG_DIR/zsh/alias.zsh
+[zshkeys]=$CONFIG_DIR/zsh/keybindings.zsh
+[vifmrc]=$CONFIG_DIR/vifm/vifmrc
+[tmuxrc]=$DOTFILE_DIR/.tmux.conf
+[tridactyl]=$CONFIG_DIR/tridactyl/tridactylrc
+[kde]=$CONFIG_DIR/kglobalshortcutsrc
+)
 
 # a list of the names (keys) of $files
 file_options=$(echo "${!files[@]}")
 
-# function that parse the files, it greps all lines starting with # " /* and looks for $bindings: " and $description: " and the discards all but whats inside the " " behind the variables
+# function that parse the files, it greps all lines starting with # " /* and looks for $bindings " and $description " and the discards all but whats inside the " " behind the variables
 # $stream contains a tab, the content of $binding ¤ (as a delimiter for column) $description
 parse_stream() {
-					stream=$(grep -E "^#|^\"|^\/\*" "$file" | grep -E "$binding:.\"|$description:.\"" | sed "s/^.*$binding:.\"\(.*\)\".$description:.\"\(.*\)\".*/\t\1$delimiter\2/g")
-				}
+		stream=$(grep -E "^#|^\"|^\/\*" "$file" | grep -E "$binding.\"|$description.\"" | sed "s/^.*$binding.\"\(.*\)\".$description.\"\(.*\)\".*/\t\1$delimiter\2/g")
+}
 
 # function that echos filename, content of $stream and an empathy line to a temporary file named lsba.tmp in /tmp
 echo_stream() {
-				    filename="${file##/*/}"
-					{
-						echo "$filename"
-						check=$(echo "$filename" | grep "alias")
-						[ -z "$check" ] && 	echo -e "\tBINDING\t¤\tDESCRIPTION" | $col
-						[ ! -z "$check" ] && echo -e "\tALIAS\t¤\tDESCRIPTION" | $col
-						echo "$stream" | $col
-						echo " "
-				    } >> "$tmp_file"
-		}
+		filename="${file##/*/}"
+		{
+				echo "$filename"
+				check=$(echo "$filename" | grep "alias")
+				[ -z "$check" ] &&	echo -e "\tBINDING\t¤\tDESCRIPTION" | $col
+				[ ! -z "$check" ] && echo -e "\tALIAS\t¤\tDESCRIPTION" | $col
+				echo "$stream" | $col
+				echo " "
+		} >> "$tmp_file"
+}
 
 # function that display the help message
 display_help() {
-				    echo  "Usage: lsba -[FLAG] [OPTION]"
-				    echo -e "\t-h¤help" | $col
-				    echo -e "\t-f¤specific file; options ($file_options)" | $col
-				    echo -e "\t-c¤value of ip-address alias copied to clipbord" | $col
-				    echo -e "\t-s¤search all files for keybinding or alias" | $col
-				    echo -e "\t ¤ no option displays all bindings and aliases" | $col
+		echo  "Usage: lsba -[FLAG] [OPTION]"
+		echo -e "\t-h¤help" | $col
+		echo -e "\t-f¤specific file; options ($file_options)" | $col
+		echo -e "\t-c¤value of ip-address alias copied to clipbord" | $col
+		echo -e "\t-s¤search all files for keybinding or alias" | $col
+		echo -e "\t ¤ no option displays all bindings and aliases" | $col
 }
 
 # displays the $tmp_file in less and removes it after viewing
 display_remove_tmp_file() {
-				    less "$tmp_file"
-				    [ -f  "$tmp_file" ] && rm "$tmp_file"
+		[ -f  "$tmp_file" ] && less "$tmp_file"
+		[ -f  "$tmp_file" ] && rm "$tmp_file"
 }
 
 # case statement that handles the different options displayed in the help text
@@ -108,9 +110,10 @@ case $FLAG in
 						stream=$(echo "$stream" | grep  "$OPTION" | { grep -v grep || test $? = 1; })
 						[ ! -z "$stream" ] && echo_stream
 				done
+				[ ! -f "$tmp_file" ] && echo "No result returned for this query." && exit
 				display_remove_tmp_file
 				;;
-		 *)
+		*)
 				[ ! -z "$1" ] && echo "ATTENTION: $1 is not an option." && echo " " && display_help && exit
 				for file in "${files[@]}"
 				do

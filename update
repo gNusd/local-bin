@@ -1,6 +1,6 @@
 #!/bin/sh
 
-tmux new-session -d -s main ;
+tmux new-session -d -s  main ;
 tmux split-window -h ;
 tmux select-pane -L
 tmux send-keys -t main 'deckard' C-m
@@ -9,7 +9,7 @@ tmux send-keys -t main 'tyrellCorp' C-m
 tmux select-pane -R
 # tmux send-keys -t main 'jfsebastian' C-m
 # tmux split-pane -v
-tmux send-keys -t main 'ssh gnus@192.168.2.120' C-m
+tmux send-keys -t main 'voight-kampff' C-m
 tmux split-pane -v
 tmux send-keys -t main 'off-world' C-m
 tmux attach-session -d -t main
