@@ -7,7 +7,7 @@
   #    # #   ## #    # #    # http://gnusd.xyz
   ####  #    #  ####   ####
 
-# FILENAME: rsyncTyrell
+# FILENAME: rsyncVoight-Kampff
 SEND="$1"
 DESTINATION="$2"
-rsync -rvz -e 'ssh -p 22' --progress "$SEND"  gnus@192.168.1.135:"$DESTINATION"
+rsync -rvz -e 'ssh -p 22' --progress "$SEND"  gnus@192.168.1.69:"$DESTINATION"

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+ 
+  ####  #    # #    #  ####  License: GNU GPLv3
+ #    # ##   # #    # #      Year: 2020
+ #      # #  # #    #  ####  
+ #  ### #  # # #    #      # https://github.com/gnusd
+ #    # #   ## #    # #    # http://gnusd.xyz 
+  ####  #    #  ####   ####
+ 
+# FILENAME: toflac
+input="$1"
+file="${input// /_}"
+filename="${file%%.*}"
+ffmpeg -i "$input" -c:a flac $filename.flac && rm "$input"

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-killall /usr/lib/x86_64-linux-gnu/libexec/org_kde_powerdevil
-
-/usr/lib/x86_64-linux-gnu/libexec/org_kde_powerdevil &
