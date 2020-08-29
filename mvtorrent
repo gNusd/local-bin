@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+ 
+  ####  #    # #    #  ####  License: GNU GPLv3
+ #    # ##   # #    # #      Year: 2020
+ #      # #  # #    #  ####  
+ #  ### #  # # #    #      # https://github.com/gnusd
+ #    # #   ## #    # #    # http://gnusd.xyz 
+  ####  #    #  ####   ####
+ 
+# FILENAME: mvtorrent
+
+
+dirlist=$(find $1 -mindepth 1 -maxdepth 3 -type d)
+
+for dir in "$dirlist"
+do
+  (
+  cd "$dir"
+  list=${ls}
+  if [ ".part" == ".*$list*." ]
+  then
+          echo "$dir"
+	  echo "there is a .part"
+  else
+	  echo "$dir"
+  fi
+  )
+done
