@@ -7,7 +7,13 @@
  #    # #   ## #    # #    # http://gnusd.xyz 
   ####  #    #  ####   ####
  
-# FILENAME: toflac
+# FILENAME: audiosplit
+
+split () {
+	cuebreakpoints *.cue | shnsplit -o flac "$audio_file"
+	cuetag *.cue split-track*.flac
+	rm "$audio_file"
+}
 
 toflac () {
 	file="${input// /_}"
@@ -18,14 +24,23 @@ toflac () {
 for file in *
 do
 	ext="${file##*.}"
+	echo "$ext"
 	case "$ext" in
+		flac)
+			audio_file="$file"
+			split
+			;;
 		ape)
 			input="$file"
 			toflac
+			audio_file="$filename"
+			split
 			;;
 		wv)
 			input="$file"
 			toflac
+			audio_file="$filename"
+			split
 			;;
 		*)
 	esac

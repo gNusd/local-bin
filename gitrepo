@@ -7,7 +7,16 @@
  #    # #   ## #    # #    # http://gnusd.xyz 
   ####  #    #  ####   ####
  
-# FILENAME: spflac
+# FILENAME: gitrepo
+repo="$1"
+dir="/home/media/git"
 
-cuebreakpoints *.cue | shnsplit -o flac *.flac
-cuetag *.cue split-track*.flac
+if [ "$repo" != .*".git"*. ]
+then
+	reponame="$repo.git"
+else
+	reponame="$repo"
+fi
+
+mkdir "$dir/$reponame" && cd "$dir/$reponame"  && git init --bare
+cd "$dir" && sudo chown git:git "$reponame"
