@@ -24,19 +24,12 @@ toflac () {
 for file in *
 do
 	ext="${file##*.}"
-	echo "$ext"
 	case "$ext" in
 		flac)
 			audio_file="$file"
 			split
 			;;
-		ape)
-			input="$file"
-			toflac
-			audio_file="$filename"
-			split
-			;;
-		wv)
+		ape | wv)
 			input="$file"
 			toflac
 			audio_file="$filename"

@@ -19,11 +19,7 @@ for file in *
 do
 	ext="${file##*.}"
 	case "$ext" in
-		ape)
-			input="$file"
-			toflac
-			;;
-		wv)
+		ape | wv | m4a)
 			input="$file"
 			toflac
 			;;
