@@ -11,8 +11,7 @@
 
 split () {
 	cuebreakpoints *.cue | shnsplit -o flac "$audio_file"
-	cuetag *.cue split-track*.flac
-	rm "$audio_file"
+	cuetag *.cue split-track*.flac && rm "$audio_file"
 }
 
 toflac () {
