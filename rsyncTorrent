@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+  ####  #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+  ####  #    #  ####   ####
+
+# FILENAME: rsyncTorrent
+
+rsync -rvz --update --remove-source-files -e 'ssh -p 22' --progress "$HOME/hämtningar/torrent/send/*"  gnus@192.168.1.134:/home/gnus/hämtningar/torrent/complete
