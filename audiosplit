@@ -1,39 +1,99 @@
 #!/usr/bin/env bash
- 
-  ####  #    # #    #  ####  License: GNU GPLv3
- #    # ##   # #    # #      Year: 2020
- #      # #  # #    #  ####  
- #  ### #  # # #    #      # https://github.com/gnusd
- #    # #   ## #    # #    # http://gnusd.xyz 
-  ####  #    #  ####   ####
- 
+
+  ####   #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+  ####   #    #  ####   ####
+
 # FILENAME: audiosplit
 
 split () {
-	cuebreakpoints *.cue | shnsplit -o flac "$audio_file"
-	cuetag *.cue split-track*.flac && rm "$audio_file"
+		cue_file="$(ls | grep "\b\.cue\b")"
+		cuebreakpoints "$cue_file" | shnsplit -o flac "$audio_file"
+		cuetag "$cue_file" split-track*.flac
+}
+
+check() {
+		ext="${file##*.}"
+		filename="${file%%.*}"
+
+		num_cue_files="$(ls | grep -c "\b\.cue\b" )"
+		names_cue_files="$(ls | grep "\b\.cue\b")"
+		cue_filename="${names_cue_files// /_}"
+		mv "$names_cue_files" "$cue_filename"
+
+		num_tracks="$(cat $cue_filename | grep -c TRACK)"
+		if [ "$num_tracks" > 1 ]
+		then
+				cue_file="$file"
+				cue_tracks="$num_tracks"
+		else
+				echo "Check cue sheet, possible only one track."
+		fi
+
+		mv "$audio_file" ${audio_file// /_}
+		audio_file="${audio_file// /_}"
+		bitrate=$(mediainfo "$audio_file" | grep "depth" | sed 's/[^0-9]*//g')
+
+		if [ "$bitrate" -gt 16 ]
+		then
+				tmp_file="${audio_file%%.*}tmp.flac"
+				cp "$audio_file" "$tmp_file" && rm "$audio_file"
+				ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$audio_file" && rm "$tmp_file"
+		fi
+}
+
+delete () {
+		printf '%s' "Delete flac & cue file [y/N] "
+		read -r response
+
+		if [ "$response" != "${response#[Yy]}" ]
+		then
+				rm "$audio_file" *.cue
+		else
+				mv "$audio_file" "$audio_file".bak
+		fi
+}
+
+beets () {
+		printf '%s' "Import to beets  [y/N] "
+		read -r response
+
+		if [ "$response" != "${response#[Yy]}" ]
+		then
+				beet import .
+		fi
 }
 
 toflac () {
-	file="${input// /_}"
-	filename="${file%%.*}.flac"
-	ffmpeg -i "$input" -c:a flac $filename && rm "$input"
+		file="${input// /_}"
+		filename="${file%%.*}.flac"
+		ffmpeg -i "$input" -c:a flac $filename && rm "$input"
 }
 
 for file in *
 do
-	ext="${file##*.}"
-	case "$ext" in
-		flac)
-			audio_file="$file"
-			split
-			;;
-		ape | wv)
-			input="$file"
-			toflac
-			audio_file="$filename"
-			split
-			;;
-		*)
-	esac
+
+		ext="${file##*.}"
+		case "$ext" in
+				flac)
+						audio_file="$file"
+						check
+						split
+						delete
+						beets
+						;;
+				ape | wv | m4a)
+						input="$file"
+						toflac
+						audio_file="$filename"
+						check
+						split
+						delete
+						beets
+						;;
+				*)
+		esac
 done
