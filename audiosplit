@@ -28,7 +28,6 @@ check() {
 		if [ "$num_tracks" > 1 ]
 		then
 				cue_file="$file"
-				cue_tracks="$num_tracks"
 		else
 				echo "Check cue sheet, possible only one track."
 		fi
