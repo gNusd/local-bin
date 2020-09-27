@@ -10,9 +10,8 @@
 # FILENAME: audiosplit
 
 split () {
-		cue_file="$(ls | grep \.cue$)"
-		cuebreakpoints "$cue_file" | shnsplit -o flac "$audio_file"
-		cuetag "$cue_file" split-track*.flac
+		cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
+		cuetag "$CUE_FILE" split-track*.flac
 }
 
 check_cue () {
@@ -32,27 +31,42 @@ check_cue () {
 		elif [ "num_tracks" == 1 ]
 		then
 				echo "Check cue sheet, possible only one track."
+		else
+				CUE_FILE="$name_cue_file"
+				export CUE_FILE
 		fi
 }
 
-check() {
+check_audio () {
+
+		num_audio_files="$(ls | grep flac$)"
+		if [ "$num_audio_files" -gt 1 ]
+		then
+				echo "More than one audio file in directory."
+				unset_local_varibles
+		else
+				file_name="${AUDIO_FILE%%.*}"
+				audio_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').flac"
+				if [ "$AUDIO_FILE" != "$audio_name" ]
+				then
+						mv "$AUDIO_FILE" "$audio_name"
+						AUDIO_FILE="$audio_name"
+						export AUDIO_FILE
+				fi
+				bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
+
+				if [ "$bitrate" -gt 16 ]
+				then
+						tmp_file="${AUDIO_FILE%%.*}tmp.flac"
+						cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
+						ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
+				fi
+		fi
+}
+
+check () {
 		check_cue
-
-		file_name="${audio_file%%.*}"
-		audio_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').flac"
-		if [ "$audio_file" != "$audio_name" ]
-		then
-				mv "$audio_file" "$audio_name"
-				audio_file="$audio_name"
-		fi
-		bitrate=$(mediainfo "$audio_file" | grep "depth" | sed 's/[^0-9]*//g')
-
-		if [ "$bitrate" -gt 16 ]
-		then
-				tmp_file="${audio_file%%.*}tmp.flac"
-				cp "$audio_file" "$tmp_file" && rm "$audio_file"
-				ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$audio_file" && rm "$tmp_file"
-		fi
+		check_audio
 }
 
 delete () {
@@ -61,9 +75,9 @@ delete () {
 
 		if [ "$response" != "${response#[Yy]}" ]
 		then
-				rm "$audio_file" *.cue
+				rm "$AUDIO_FILE" "$CUE_FILE"
 		else
-				mv "$audio_file" "$audio_file".bak
+				mv "$AUDIO_FILE" "$AUDIO_FILE".bak
 		fi
 }
 
@@ -77,28 +91,32 @@ beets () {
 		fi
 }
 
+unset_local_varibles () {
+		unset CUE_FILE
+		unset AUDIO_FILE
+}
+
 toflac () {
-		file="${input// /_}"
+		file="$(echo $AUDIO_FILE | sed 's/[^0-9a-zA-Z]//g').flac"
 		filename="${file%%.*}.flac"
-		ffmpeg -i "$input" -c:a flac $filename && rm "$input"
+		ffmpeg -i "$AUDIO_FILE" -c:a flac $filename && rm "$AUDIO_FILE"
 }
 
 for file in *
 do
-
 		ext="${file##*.}"
 		case "$ext" in
 				flac)
-						audio_file="$file"
+						export AUDIO_FILE="$file"
 						check
 						split
 						delete
 						beets
 						;;
 				ape | wv | m4a)
-						input="$file"
+						export AUDIO_FILE="$file"
 						toflac
-						audio_file="$filename"
+						export AUDIO_FILE="$filename"
 						check
 						split
 						delete
@@ -107,3 +125,5 @@ do
 				*)
 		esac
 done
+
+unset_local_varibles
