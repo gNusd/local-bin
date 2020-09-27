@@ -16,6 +16,27 @@ split () {
 
 check_cue () {
 		name_cue_file="$(ls | grep \.cue$)"
+		num_cue_file="$(echo $name_cue_file | wc -l)"
+		if [ "$num_cue_file" -gt 1 ]
+		then
+				declare -a num_cue_array
+				declare -a name_cue_array
+				for file in *.cue
+				do
+						num_tracks="$(cat "$file" | grep -c TRACK)"
+						num_cue_array+=("$num_tracks")
+
+						file_name="${file%%.*}"
+						clean_file="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').cue"
+						mv "$file" "$clean_file"
+						name_cue_array+=("$clean_file")
+				done
+				comp="$(echo ${cue_array[@]} | tr ' ' '\n' | sort | uniq -u)"
+				if [ -z "$comp" ]
+
+
+				fi
+		fi
 
 		file_name="${name_cue_file%%.*}"
 		cue_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').cue"
