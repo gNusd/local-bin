@@ -10,30 +10,41 @@
 # FILENAME: audiosplit
 
 split () {
-		cue_file="$(ls | grep "\b\.cue\b")"
+		cue_file="$(ls | grep \.cue$)"
 		cuebreakpoints "$cue_file" | shnsplit -o flac "$audio_file"
 		cuetag "$cue_file" split-track*.flac
 }
 
-check() {
-		ext="${file##*.}"
-		filename="${file%%.*}"
+check_cue () {
+		name_cue_file="$(ls | grep \.cue$)"
 
-		num_cue_files="$(ls | grep -c "\b\.cue\b" )"
-		names_cue_files="$(ls | grep "\b\.cue\b")"
-		cue_filename="${names_cue_files// /_}"
-		mv "$names_cue_files" "$cue_filename"
-
-		num_tracks="$(cat $cue_filename | grep -c TRACK)"
-		if [ "$num_tracks" > 1 ]
+		file_name="${name_cue_file%%.*}"
+		cue_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').cue"
+		if [ "$name_cue_file" != "$cue_name" ]
 		then
-				cue_file="$file"
-		else
+				mv "$name_cue_file" "$cue_name"
+				name_cue_file="$cue_name"
+		fi
+		num_tracks="$(cat "$name_cue_file" | grep -c TRACK)"
+		if [ "$num_tracks" -lt 1 ]
+		then
+				echo "Probably not a cue file"
+		elif [ "num_tracks" == 1 ]
+		then
 				echo "Check cue sheet, possible only one track."
 		fi
+}
 
-		mv "$audio_file" ${audio_file// /_}
-		audio_file="${audio_file// /_}"
+check() {
+		check_cue
+
+		file_name="${audio_file%%.*}"
+		audio_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').flac"
+		if [ "$audio_file" != "$audio_name" ]
+		then
+				mv "$audio_file" "$audio_name"
+				audio_file="$audio_name"
+		fi
 		bitrate=$(mediainfo "$audio_file" | grep "depth" | sed 's/[^0-9]*//g')
 
 		if [ "$bitrate" -gt 16 ]
