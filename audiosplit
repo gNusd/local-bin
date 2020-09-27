@@ -31,10 +31,10 @@ check_cue () {
 						mv "$file" "$clean_file"
 						name_cue_array+=("$clean_file")
 				done
-				comp="$(echo ${cue_array[@]} | tr ' ' '\n' | sort | uniq -u)"
+				comp="$(echo ${num_cue_array[@]} | tr ' ' '\n' | sort | uniq -u)"
 				if [ -z "$comp" ]
-
-
+				then
+						export CUE_FILE="${name_cue_array[@]}"
 				fi
 		fi
 
