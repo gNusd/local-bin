@@ -36,6 +36,7 @@ check_cue () {
 						rm  "${name_cue_array[0]}"
 				else
 						echo "cue files don't match"
+						export CUE_FILE="${name_cue_array[@]}"
 				fi
 		fi
 
