@@ -26,15 +26,16 @@ check_cue () {
 						num_tracks="$(cat "$file" | grep -c TRACK)"
 						num_cue_array+=("$num_tracks")
 
-						file_name="${file%%.*}"
-						clean_file="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').cue"
+						clean_file="$(echo $file | sed 's/[^0-9a-zA-Z.]/_/g')"
 						mv "$file" "$clean_file"
 						name_cue_array+=("$clean_file")
 				done
-				comp="$(echo ${cue_array[@]} | tr ' ' '\n' | sort | uniq -u)"
+				comp="$(echo ${num_cue_array[@]} | tr ' ' '\n' | sort | uniq -u)"
 				if [ -z "$comp" ]
-
-
+				then
+						rm  "${name_cue_array[0]}"
+				else
+						echo "cue files don't match"
 				fi
 		fi
 
