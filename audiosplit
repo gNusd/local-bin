@@ -17,6 +17,24 @@ split () {
 		fi
 }
 
+process_signle_audiofile() {
+
+		audio_name="$(echo $AUDIO_FILE | sed 's/[^0-9a-zA-Z.]/_/g')"
+		if [ "$AUDIO_FILE" != "$audio_name" ]
+		then
+				mv "$AUDIO_FILE" "$audio_name"
+				export AUDIO_FILE="$audio_name"
+		fi
+		bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
+
+		if [[ "$bitrate" -gt 16 ]]
+		then
+				tmp_file="${AUDIO_FILE%%.*}tmp.flac"
+				cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
+				ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
+		fi
+}
+
 check_cue () {
 		# counting number of cue files
 		num_cue_file="$(ls | grep -c \.cue$)"
@@ -74,58 +92,56 @@ check_cue () {
 		fi
 }
 
-check_audio () {
+toflac () {
+		file="${input// /_}"
+		filename="${file%%.*}.flac"
+		ffmpeg -i "$input" -c:a flac $filename && rm "$input"
+}
 
+check_audio () {
 		non_flac_files=0
 		flac_file=0
-		for aufile in ".flac" ".m4a" ".ape" ".wav"
+		# count number of audiofiles in directory
+		for aufile in *
 		do
 				ext="${aufile##*.}"
 				if [ "$ext" == "flac" ]
 				then
-						let "$flac_file++"
-				else
-						let "$non_flac_files++"
+						let "flac_file++"
+						AUDIO_FILE="$aufile"
+				elif [[ "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
+				then
+						let "non_flac_files++"
+						AUDIO_FILE="$aufile"
 				fi
-				export AUDIO_FILE="$aufile"
 		done
 		let "num_audio_files=$non_flac_files + $flac_file"
 
 		if [ "$num_audio_files" -gt 1 ]
 		then
-				num=0
-				for aufile in ".m4a" ".ape" ".wav"
-				do
-						let "num++"
-				done
-				if [ "$num" > 1 ]
+				if [ "$non_flac_files" -gt 1 ]
 				then
-						for nonflac in ".m4a" ".ape" ".wav"
+						for file in *
 						do
-								AUDIO_FILE="$nonflac"
-								toflac
+								ext="${file##*.}"
+								case "$ext" in
+										ape | wv | m4a | wav)
+												input="$file"
+												toflac
+												;;
+										*)
+								esac
 						done
+						exit
 				fi
 				unset_local_varibles
 		else
 				if [ "$non_flac_files" == 1 ]
 				then
 						toflac
+						process_signle_audiofile
 				else
-						audio_name="$(echo $AUDIO_FILE | sed 's/[^0-9a-zA-Z.]/_/g')"
-						if [ "$AUDIO_FILE" != "$audio_name" ]
-						then
-								mv "$AUDIO_FILE" "$audio_name"
-								export AUDIO_FILE="$audio_name"
-						fi
-						bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
-
-						if [ "$bitrate" -gt 16 ]
-						then
-								tmp_file="${AUDIO_FILE%%.*}tmp.flac"
-								cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
-								ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
-						fi
+						process_signle_audiofile
 				fi
 		fi
 }
@@ -162,13 +178,15 @@ unset_local_varibles () {
 		unset AUDIO_FILE
 }
 
-for file in *.flac *.m4a *.ape *.wav
+for file in *
 do
-		export AUDIO_FILE="$file"
-		check
-		split
-		delete
-		beets
+		ext="${file##*.}"
+		if [[  "$ext" == "flac" || "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
+		then
+				export AUDIO_FILE="$file"
+				check
+				split
+				delete
+				unset_local_varibles
+		fi
 done
-
-unset_local_varibles
