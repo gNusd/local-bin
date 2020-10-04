@@ -34,12 +34,12 @@
 		  {
 				  echo "$SHEBANG"
 				  echo  " "
-				  echo  "  ####  #    # #    #  ####  License: GNU GPLv3"
+				  echo  " #####  #    # #    #  ####  License: GNU GPLv3"
 				  echo  " #    # ##   # #    # #      Year: 2020"
 				  echo  " #      # #  # #    #  ####  "
 				  echo  " #  ### #  # # #    #      # https://github.com/gnusd"
 				  echo  " #    # #   ## #    # #    # http://gnusd.xyz "
-				  echo  "  ####  #    #  ####   ####"
+				  echo  " #####  #    #  ####   ####"
 				  echo  " "
 				  echo  "# FILENAME: $FILE"
 

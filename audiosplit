@@ -10,79 +10,122 @@
 # FILENAME: audiosplit
 
 split () {
-		cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
-		cuetag "$CUE_FILE" split-track*.flac
+		if [[ ! -z "$CUE_FILE" || ! -z "$AUDIO_FILE" ]]
+		then
+				cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
+				cuetag "$CUE_FILE" split-track*.flac
+		fi
 }
 
 check_cue () {
-		name_cue_file="$(ls | grep \.cue$)"
-		num_cue_file="$(echo $name_cue_file | wc -l)"
+		# counting number of cue files
+		num_cue_file="$(ls | grep -c \.cue$)"
+
+		# if there are more than one cue file
 		if [ "$num_cue_file" -gt 1 ]
 		then
-				declare -a num_cue_array
-				declare -a name_cue_array
+				num_track_array=()
+				name_cue_array=()
 				for file in *.cue
 				do
 						num_tracks="$(cat "$file" | grep -c TRACK)"
-						num_cue_array+=("$num_tracks")
+						num_track_array+=("$num_tracks")
 
 						clean_file="$(echo $file | sed 's/[^0-9a-zA-Z.]/_/g')"
-						mv "$file" "$clean_file"
-						name_cue_array+=("$clean_file")
+						if [[ -z "$name_cue_array" || ! " ${name_cue_array[@]} " =~ " ${clean_file} " ]]
+						then
+								if [[ "$file" != "$clean_file" ]]
+								then
+										mv "$file" "$clean_file"
+										name_cue_array+=("$clean_file")
+								else
+										name_cue_array+=("$file")
+								fi
+						fi
 				done
-				comp="$(echo ${num_cue_array[@]} | tr ' ' '\n' | sort | uniq -u)"
+
+				# check if number of tracks are the same, if same varible is empthy
+				comp="$(echo ${num_track_array[@]} | tr ' ' '\n' | sort | uniq -u)"
 				if [ -z "$comp" ]
 				then
-						rm  "${name_cue_array[0]}"
+						mv  "${name_cue_array[0]}" "${name_cue_array[0]}".bak
+						export CUE_FILE="${name_cue_array[1]}"
 				else
 						echo "cue files don't match"
-						export CUE_FILE="${name_cue_array[@]}"
 				fi
-		fi
-
-		file_name="${name_cue_file%%.*}"
-		cue_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').cue"
-		if [ "$name_cue_file" != "$cue_name" ]
-		then
-				mv "$name_cue_file" "$cue_name"
-				name_cue_file="$cue_name"
-		fi
-		num_tracks="$(cat "$name_cue_file" | grep -c TRACK)"
-		if [ "$num_tracks" -lt 1 ]
-		then
-				echo "Probably not a cue file"
-		elif [ "num_tracks" == 1 ]
-		then
-				echo "Check cue sheet, possible only one track."
 		else
-				CUE_FILE="$name_cue_file"
-				export CUE_FILE
+				name_cue_file="$(ls | grep \.cue$)"
+				cue_name="$(echo $name_cue_file | sed 's/[^0-9a-zA-Z.]/_/g')"
+				if [ "$name_cue_file" != "$cue_name" ]
+				then
+						mv "$name_cue_file" "$cue_name"
+						export CUE_FILE="$cue_name"
+				fi
+				num_tracks="$(cat "$name_cue_file" | grep -c TRACK)"
+				if [ "$num_tracks" -lt 1 ]
+				then
+						echo "Probably not a cue file"
+				elif [ "$num_tracks" == 1 ]
+				then
+						echo "Check cue sheet, possible only one track."
+				else
+						export CUE_FILE="$name_cue_file"
+				fi
 		fi
 }
 
 check_audio () {
 
-		num_audio_files="$(ls | grep flac$)"
+		non_flac_files=0
+		flac_file=0
+		for aufile in ".flac" ".m4a" ".ape" ".wav"
+		do
+				ext="${aufile##*.}"
+				if [ "$ext" == "flac" ]
+				then
+						let "$flac_file++"
+				else
+						let "$non_flac_files++"
+				fi
+				export AUDIO_FILE="$aufile"
+		done
+		let "num_audio_files=$non_flac_files + $flac_file"
+
 		if [ "$num_audio_files" -gt 1 ]
 		then
-				echo "More than one audio file in directory."
+				num=0
+				for aufile in ".m4a" ".ape" ".wav"
+				do
+						let "num++"
+				done
+				if [ "$num" > 1 ]
+				then
+						for nonflac in ".m4a" ".ape" ".wav"
+						do
+								AUDIO_FILE="$nonflac"
+								toflac
+						done
+				fi
 				unset_local_varibles
 		else
-				file_name="${AUDIO_FILE%%.*}"
-				audio_name="$(echo $file_name | sed 's/[^0-9a-zA-Z]//g').flac"
-				if [ "$AUDIO_FILE" != "$audio_name" ]
+				if [ "$non_flac_files" == 1 ]
 				then
-						mv "$AUDIO_FILE" "$audio_name"
-						AUDIO_FILE="$audio_name"
-						export AUDIO_FILE
-				fi
-				bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
+						toflac
+				else
+						audio_name="$(echo $AUDIO_FILE | sed 's/[^0-9a-zA-Z.]/_/g')"
+						if [ "$AUDIO_FILE" != "$audio_name" ]
+						then
+								mv "$AUDIO_FILE" "$audio_name"
+								export AUDIO_FILE="$audio_name"
+						fi
+						bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
 
-				if [ "$bitrate" -gt 16 ]
-				then
-						tmp_file="${AUDIO_FILE%%.*}tmp.flac"
-						cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
-						ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
+						if [ "$bitrate" -gt 16 ]
+						then
+								tmp_file="${AUDIO_FILE%%.*}tmp.flac"
+								cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
+								ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
+						fi
 				fi
 		fi
 }
@@ -119,34 +162,13 @@ unset_local_varibles () {
 		unset AUDIO_FILE
 }
 
-toflac () {
-		file="$(echo $AUDIO_FILE | sed 's/[^0-9a-zA-Z]//g').flac"
-		filename="${file%%.*}.flac"
-		ffmpeg -i "$AUDIO_FILE" -c:a flac $filename && rm "$AUDIO_FILE"
-}
-
-for file in *
+for file in *.flac *.m4a *.ape *.wav
 do
-		ext="${file##*.}"
-		case "$ext" in
-				flac)
-						export AUDIO_FILE="$file"
-						check
-						split
-						delete
-						beets
-						;;
-				ape | wv | m4a)
-						export AUDIO_FILE="$file"
-						toflac
-						export AUDIO_FILE="$filename"
-						check
-						split
-						delete
-						beets
-						;;
-				*)
-		esac
+		export AUDIO_FILE="$file"
+		check
+		split
+		delete
+		beets
 done
 
 unset_local_varibles
