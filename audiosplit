@@ -9,8 +9,24 @@
 
 # FILENAME: audiosplit
 
+#checking if all dependencies are installed
+check_dependencies () {
+		dep=(cuetools shntool ffmpeg mediainfo)
+		for i in "${dep[@]}"
+		do
+				check_dpkg="$(dpkg -l |grep $i)"
+				check_snap="$(snap list | grep $i)"
+				check_flatpak="$(flatpak list | grep $i)"
+				if [[ -z "$check_dpkg" && -z "$check_snap" && -z "$check_flatpak" ]]
+				then
+						echo "You have to install $i for the script to work"
+				fi
+		done
+}
+
 split () {
-		if [[ ! -z "$CUE_FILE" || ! -z "$AUDIO_FILE" ]]
+		# split will only proceed if both AUDIO_FILE and CUE_FILE exists
+		if [[ ! -z "$CUE_FILE" && ! -z "$AUDIO_FILE" ]]
 		then
 				cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
 				cuetag "$CUE_FILE" split-track*.flac
@@ -70,6 +86,7 @@ check_cue () {
 						export CUE_FILE="${name_cue_array[1]}"
 				else
 						echo "cue files don't match"
+						exit
 				fi
 		else
 				name_cue_file="$(ls | grep \.cue$)"
@@ -83,9 +100,11 @@ check_cue () {
 				if [ "$num_tracks" -lt 1 ]
 				then
 						echo "Probably not a cue file"
+						exit
 				elif [ "$num_tracks" == 1 ]
 				then
 						echo "Check cue sheet, possible only one track."
+						exit
 				else
 						export CUE_FILE="$name_cue_file"
 				fi
@@ -146,10 +165,6 @@ check_audio () {
 		fi
 }
 
-check () {
-		check_cue
-		check_audio
-}
 
 delete () {
 		printf '%s' "Delete flac & cue file [y/N] "
@@ -160,16 +175,6 @@ delete () {
 				rm "$AUDIO_FILE" "$CUE_FILE"
 		else
 				mv "$AUDIO_FILE" "$AUDIO_FILE".bak
-		fi
-}
-
-beets () {
-		printf '%s' "Import to beets  [y/N] "
-		read -r response
-
-		if [ "$response" != "${response#[Yy]}" ]
-		then
-				beet import .
 		fi
 }
 
@@ -184,7 +189,8 @@ do
 		if [[  "$ext" == "flac" || "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
 		then
 				export AUDIO_FILE="$file"
-				check
+				check_cue
+				check_audio
 				split
 				delete
 				unset_local_varibles

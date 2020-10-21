@@ -1,28 +1,33 @@
 #!/usr/bin/env bash
- 
+
   ####  #    # #    #  ####  License: GNU GPLv3
- #    # ##   # #    # #      Year: 2020
- #      # #  # #    #  ####  
- #  ### #  # # #    #      # https://github.com/gnusd
- #    # #   ## #    # #    # http://gnusd.xyz 
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
   ####  #    #  ####   ####
- 
+
 # FILENAME: toflac
 
 toflac () {
-	file="${input// /_}"
-	filename="${file%%.*}.flac"
-	ffmpeg -i "$input" -c:a flac $filename && rm "$input"
+		file="${input// /_}"
+		filename="${file%%.*}.flac"
+		ffmpeg -i "$input" -c:a flac $filename && rm "$input"
 }
-
-for file in *
+for D in *
 do
-	ext="${file##*.}"
-	case "$ext" in
-		ape | wv | m4a)
-			input="$file"
-			toflac
-			;;
-		*)
-	esac
+		if [ -d "${D}" ]
+		then
+				for file in *
+				do
+						ext="${file##*.}"
+						case "$ext" in
+								ape | wv | wav | m4a)
+										input="$file"
+										toflac
+										;;
+								*)
+						esac
+				done
+		fi
 done
