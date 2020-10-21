@@ -9,24 +9,31 @@
 
 # FILENAME: cuesheet
 
-case
+echo "Name of cue sheet file"
+read file
+echo "Artists name"
+read artist
+echo "Title of album"
+read title
+echo "Relese year"
+read year
+echo "Genre"
+read genre
 
-		echo "Artists name" < read "artist"
-		echo "Title of album" < read "title"
-		echo "Relese year" < read "year"
-		echo "Genre" < read "genre"
+if [ ".*.cue$" != "$file" ]
+then
+		file="$file".cue
+fi
+
+(echo "REM GENRE $genre"
+echo "REM DATE $year"
+echo "PERFORMER $artist"
+echo "TITLE $title"
+echo "FILE  WAVE") >> "$file"
 
 
-
-		REM GENRE
-		REM DATE
-		PERFORMER
-		TITLE
-		FILE  WAVE
-
-
-		TRACK 01 AUDIO
-		TITLE
-		PERFORMER
-		INDEX 01
+# TRACK 01 AUDIO
+# TITLE
+# PERFORMER
+# INDEX 01
 
