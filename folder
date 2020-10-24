@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+  ####  #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+  ####  #    #  ####   ####
+
+# FILENAME: folder
+
+
+for D in *; do
+		if [ -d "${D}" ]; then
+				echo "${D}"   # your processing here
+		fi
+done
+

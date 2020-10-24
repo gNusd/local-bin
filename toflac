@@ -18,6 +18,7 @@ for D in *
 do
 		if [ -d "${D}" ]
 		then
+				cd "$D"
 				for file in *
 				do
 						ext="${file##*.}"
@@ -29,5 +30,6 @@ do
 								*)
 						esac
 				done
+				cd ..
 		fi
 done
