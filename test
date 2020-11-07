@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+ #####  #    # #    #  ####  License: GNU GPLv3
+ #    # ##   # #    # #      Year: 2020
+ #      # #  # #    #  ####
+ #  ### #  # # #    #      # https://github.com/gnusd
+ #    # #   ## #    # #    # http://gnusd.xyz
+ #####  #    #  ####   ####
+
+# FILENAME: test
+
+file_search () {
+
+		for file in *
+		do
+				[[ -f "$file" ]] && echo "FILE: $file"
+				[[ -d "$file" ]] && echo "DIR: $file"
+		done
+}
+
+dir_search () {
+		for D in *
+		do
+				if [ -d "${D}" ]
+				then
+						cd "$D"
+						file_search
+						cd ..
+				fi
+		done
+}
+
+check_dir () {
+		parent_dir_content=("$(ls)")
+		for item in ${parent_dir_content[@]}
+		do
+				[ -d "$item" ] && dir=true
+		done
+		if [[ ! -z "$dir" ]]
+		then
+				dir_search
+		else
+				file_search
+		fi
+}
+
+check_dir

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+  #####  #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+  #####  #    #  ####   ####
+
+# FILENAME: check_cue
+for i in *
+do
+		fn="${i%%*.}.wv"
+		fe="${i##*.}"
+		if [[ "$fe" == "flac" ]]
+		then
+				ffmpeg -i "$i" "$fn"
+				rm "$i"
+		fi
+done
