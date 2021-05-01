@@ -1,139 +1,13 @@
 #!/usr/bin/env bash
 
- #####  #    # #    #  ####  License: GNU GPLv3
- #    # ##   # #    # #      Year: 2020
- #      # #  # #    #  ####
- #  ### #  # # #    #      # https://github.com/gnusd
- #    # #   ## #    # #    # http://gnusd.xyz
- #####  #    #  ####   ###
+ ####  #    # #    #  ####  License: GNU GPLv3
+#    # ##   # #    # #      Year: 2020
+#      # #  # #    #  ####
+#  ### #  # # #    #      # https://github.com/gnusd
+#    # #   ## #    # #    # http://gnusd.xyz
+ ####  #    #  ####   ####
 
-# FILENAME: audio
-
-get_file_extension () {
-		FILE="$@"
-		echo "${FILE##*.}"
-}
-
-get_name_of_file () {
-		FILE="$@"
-		echo "${FILE%%.*}"
-
-		clean_file_names () {
-				FILE="$@"
-				echo "$(echo $FILE | sed 's/[^0-9a-zA-Z.]/_/g')"
-		}
-check_dependencies () {
-		dep=(cuetools shntool ffmpeg mediainfo)
-		for i in "${dep[@]}"
-		do
-				check_dpkg="$(dpkg -l |grep $i)"
-				check_snap="$(snap list | grep $i)"
-				check_flatpak="$(flatpak list | grep $i)"
-				if [[ -z "$check_dpkg" && -z "$check_snap" && -z "$check_flatpak" ]]
-				then
-						echo "You have to install $i for the script to work"
-						NOK=true
-				fi
-		done
-		if [[ -z "$NOK" ]]
-		then
-				echo "All dependencies are installed"
-		fi
-}
-
-
-split () {
-		# split will only proceed if both AUDIO_FILE and CUE_FILE exists
-		if [[ ! -z "$CUE_FILE" && ! -z "$AUDIO_FILE" ]]
-		then
-				cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
-				cuetag "$CUE_FILE" split-track*.flac
-		fi
-}
-
-process_signle_audiofile() {
-
-		audio_name="$(clean_file_names $AUDIO_FILE)"
-		if [ "$AUDIO_FILE" != "$audio_name" ]
-		then
-				mv "$AUDIO_FILE" "$audio_name"
-				export AUDIO_FILE="$audio_name"
-		fi
-		bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
-
-		if [[ "$bitrate" -gt 16 ]]
-		then
-				tmp_file="$(get_name_of_file).tmp.flac"
-				cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
-				ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
-		fi
-}
-
-check_cue () {
-		# counting number of cue files
-		num_cue_file="$(ls | grep -c \.cue$)"
-
-		# if there are more than one cue file
-		if [ "$num_cue_file" -gt 1 ]
-		then
-				num_track_array=()
-				name_cue_array=()
-				for file in *.cue
-				do
-						num_tracks="$(cat "$file" | grep -c TRACK)"
-						num_track_array+=("$num_tracks")
-
-						clean_file="$(echo $file | sed 's/[^0-9a-zA-Z.]/_/g')"
-						if [[ -z "$name_cue_array" || ! " ${name_cue_array[@]} " =~ " ${clean_file} " ]]
-						then
-								if [[ "$file" != "$clean_file" ]]
-								then
-										mv "$file" "$clean_file"
-										name_cue_array+=("$clean_file")
-								else
-										name_cue_array+=("$file")
-								fi
-						fi
-				done
-
-				# check if number of tracks are the same, if same varible is empthy
-				comp="$(echo ${num_track_array[@]} | tr ' ' '\n' | sort | uniq -u)"
-				if [ -z "$comp" ]
-				then
-						mv  "${name_cue_array[0]}" "${name_cue_array[0]}".bak
-						export CUE_FILE="${name_cue_array[1]}"
-				else
-						echo "cue files don't match"
-						exit
-				fi
-		else
-				name_cue_file="$(ls | grep \.cue$)"
-				cue_name="$(clean_file_names $name_cue_file)"
-				if [ "$name_cue_file" != "$cue_name" ]
-				then
-						mv "$name_cue_file" "$cue_name"
-						export CUE_FILE="$cue_name"
-				fi
-				num_tracks="$(cat "$name_cue_file" | grep -c TRACK)"
-				if [ "$num_tracks" -lt 1 ]
-				then
-						echo "Probably not a cue file"
-						exit
-				elif [ "$num_tracks" == 1 ]
-				then
-						echo "Check cue sheet, possible only one track."
-						exit
-				else
-						export CUE_FILE="$name_cue_file"
-				fi
-		fi
-}
-
-toflac () {
-		file="${input// /_}"
-		filename="$(get_name_of_file).flac"
-		ffmpeg -i "$input" -c:a flac $filename && rm "$input"
-}
+## FILENAME: audio
 
 check_audio () {
 		non_flac_files=0
@@ -146,7 +20,7 @@ check_audio () {
 				then
 						let "flac_file++"
 						AUDIO_FILE="$aufile"
-				elif [[ "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv"  ]]
+				elif [[ "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
 				then
 						let "non_flac_files++"
 						AUDIO_FILE="$aufile"
@@ -161,11 +35,13 @@ check_audio () {
 						for file in *
 						do
 								ext="${file##*.}"
-								if [[ "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv"  ]]
-								then
-										input="$file"
-										toflac
-								fi
+								case "$ext" in
+										ape | wv | m4a | wav)
+												input="$file"
+												toflac
+												;;
+										*)
+								esac
 						done
 						exit
 				fi
@@ -181,19 +57,28 @@ check_audio () {
 		fi
 }
 
-delete () {
-		rm "$AUDIO_FILE" "$CUE_FILE"
+get_extension () {
+		tmp="${1##*.}"
 }
-ask_delete () {
-		printf '%s' "Delete flac & cue file [y/N] "
+
+get_file_name () {
+		tmp="${1%%.*}"
+}
+
+delete () {
+		printf '%s' "Delete flac & cue file [Y/n] "
 		read -r response
 
-		if [ "$response" != "${response#[Yy]}" ]
-		then
-				delete
-		else
-				mv "$AUDIO_FILE" "$AUDIO_FILE".bak
-		fi
+		if [ "$response" != "${response#[Nn]}" ]
+				then
+						mv "$AUDIO_FILE" "$AUDIO_FILE".bak
+				else
+						rm "$AUDIO_FILE" "$CUE_FILE"
+						fi
+}
+
+rename () {
+		tmp=$"(echo "$1" | sed 's/[^0-9a-zA-Z.]/_/g')"
 }
 
 unset_local_varibles () {
@@ -201,61 +86,27 @@ unset_local_varibles () {
 		unset AUDIO_FILE
 }
 
-for arg in "$@"
-do
-		case $arg in
-				-d|--delete)
-						SHOULD_DELETE=true
-						shift # Remove --delete from processing
-						;;
-				-i|--install)
-						CHECK_DEPENDENCIES=true
-						shift # Remove --install from processing
-						;;
-				-r=*|--root=*)
-						ROOT_DIRECTORY="${arg#*=}"
-						shift # Remove --root= from processing
-						;;
-				-s|--single)
-						SINGLE_DIRECTORY=true
-						shift # Remove --single from processing
-						;;
-				-h|--help)
-						echo "help"
-						;;
-				*)
-						exit
-						;;
-		esac
-done
-# if the varible ROOT_DIRECTORY is empthy current working directory is assigned
-[[ -z $ROOT_DIRECTORY ]] && ROOT_DIRECTORY="*"
-
-# if --install is selected then the script will only check for dependencies and then exit
-if [[ ! -z "$CHECK_DEPENDENCIES" ]]
-then
-		check_dependencies
-		exit
-fi
-cd "$ROOT_DIRECTORY"
-
-# start travering ROOT_DIRECTORY
-for file in *
-do
-		ext=$(get_file_extension $file)
-		if [[ "$ext" == "flac" || "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv"  ]]
-		then
+recursiverm() {
+		for d in *
+		do
+			if [ -d "$d" ]
+			then
+				(cd -- "$d" && recursiverm)
+			fi
+		done
+}
+main () {
+		for file in *
+		do
+			ext="${file##*.}"
+			if [[  "$ext" == "flac" || "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
+			then
 				export AUDIO_FILE="$file"
 				check_cue
 				check_audio
 				split
-				if [[ -z SHOULD_DELETE ]]
-				then
-						ask_delete
-				else
-						delete
-				fi
-
+				delete
 				unset_local_varibles
-		fi
-done
+			fi
+		done
+}

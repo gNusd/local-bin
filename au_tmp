@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+   ###   #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+   ###   #    #  ####   ####
+
+# FILENAME: audiosplit
+
+# FILE NAME HANDLING
+### handling file names and extensions
+FNAME() {
+		echo "${1%%.*}"
+}
+FEXT() {
+		echo "${1##*.}"
+}
+### removing spaces in file names
+REMOVE_SPACE() {
+		echo $"(echo "$1" | sed 's/[^0-9a-zA-Z.]/_/g')"
+}
+
+convet2flac() {
+		file_name=$(FNAME $AUDIO_FILE)
+		ffmpeg -i "$AUDIO_FILE" -c:a flac "$file_name" && rm "$AUDIO_FILE"
+		AUDIO_FILE="$file_name"
+		export AUDIO_FILE
+}
+
+# main
+for file in *
+do
+		ext=$(EXT file)
+		case $ext in
+				flac|)
+						export AUDIO_FILE="$file"
+						;;
+				ape|m4a|wav|wv)
+						export AUDIO_FILE="$file"
+						convet2flac
+						;;
+				*)
+						echo "Could not find any valid audio files"
+						;;
+		esac
+done

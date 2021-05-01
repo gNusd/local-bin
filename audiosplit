@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-  ####   #    # #    #  ####  License: GNU GPLv3
+   ###   #    # #    #  ####  License: GNU GPLv3
   #    # ##   # #    # #      Year: 2020
   #      # #  # #    #  ####
   #  ### #  # # #    #      # https://github.com/gnusd
   #    # #   ## #    # #    # http://gnusd.xyz
-  ####   #    #  ####   ####
+   ###   #    #  ####   ####
 
 # FILENAME: audiosplit
 
@@ -30,6 +30,15 @@ split () {
 		then
 				cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
 				cuetag "$CUE_FILE" split-track*.flac
+		elif [[ -z "$CUE_FILE" ]]
+		then
+				echo "There is no cue file or another type of error. Check filesystem."
+		elif [[ -z "$AUDIO_FILE" ]]
+		then
+				echo "There is no audio file or another type of error. Check filesystem."
+		elif [[ -z "$CUE_FILE" && -z "$AUDIO_FILE" ]]
+		then
+				echo "There is no cue and audio file or another type of error. Check filesystem."
 		fi
 }
 
@@ -80,6 +89,7 @@ check_cue () {
 
 				# check if number of tracks are the same, if same varible is empthy
 				comp="$(echo ${num_track_array[@]} | tr ' ' '\n' | sort | uniq -u)"
+		}
 				if [ -z "$comp" ]
 				then
 						mv  "${name_cue_array[0]}" "${name_cue_array[0]}".bak
@@ -178,9 +188,23 @@ delete () {
 		fi
 }
 
+rename () {
+              tmp=$"(echo "$1" | sed 's/[^0-9a-zA-Z.]/_/g')"
+	   }
+
 unset_local_varibles () {
 		unset CUE_FILE
 		unset AUDIO_FILE
+}
+
+recursiverm() {
+  for d in *
+  do
+    if [ -d "$d" ]; then
+      (cd -- "$d" && recursiverm)
+    fi
+
+  done
 }
 
 for file in *

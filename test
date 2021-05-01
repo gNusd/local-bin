@@ -9,39 +9,189 @@
 
 # FILENAME: test
 
-file_search () {
+
+
+check_cue () {
+		# counting number of cue files
+		num_cue_file="$(ls | grep -c \.cue$)"
 
 		for file in *
 		do
-				[[ -f "$file" ]] && echo "FILE: $file"
-				[[ -d "$file" ]] && echo "DIR: $file"
+				ext="${file##*.}"
+				if [[ "$ext" == "cue" ]]
+				then
+						rename "$file"
+				fi
 		done
+
+		# if there are more than one cue file
+		if [ "$num_cue_file" -gt 1 ]
+		then
+				num_track_array=()
+				name_cue_array=()
+				for file in *.cue
+				do
+						num_tracks="$(cat "$file" | grep -c TRACK)"
+						num_track_array+=("$num_tracks")
+
+						if [[ -z "$name_cue_array" ]]
+						then
+								name_cue_array+=("$file")
+						fi
+				done
+
+				# check if number of tracks are the same, if same varible is empthy
+				comp="$(echo ${num_track_array[@]} | tr ' ' '\n' | sort | uniq -u)"
+
+				if [ -z "$comp" ]
+				then
+						export CUE_FILE="${name_cue_array[0]}"
+						for index in "${name_cue_array[@]}"
+						do
+								mv  "$index" "$index.bak"
+						done
+				else
+						echo "cue files don't match"
+						exit
+				fi
+		else
+				CUE_FILE="$(ls | grep \.cue$)"
+				num_tracks="$(cat "$CUE_FILE" | grep -c TRACK)"
+				if [ "$num_tracks" -lt 1 ]
+				then
+						echo "Probably not a cue file"
+						exit
+				elif [ "$num_tracks" == 1 ]
+				then
+						echo "Check cue sheet, possible only one track."
+						main
+				else
+						export CUE_FILE
+				fi
+		fi
 }
 
-dir_search () {
-		for D in *
+split () {
+		# split will only proceed if both AUDIO_FILE and CUE_FILE exists
+		if [[ ! -z "$CUE_FILE" && ! -z "$AUDIO_FILE" ]]
+		then
+				cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
+				cuetag "$CUE_FILE" split-track*.flac
+		elif [[ -z "$CUE_FILE" ]]
+		then
+				echo "Can't find the cue file"
+		elif [[ -z "$AUDIO_FILE" ]]
+		then
+				echo "Can't find the audio file"
+		else
+				echo "Can't find audio and cue file"
+
+		fi
+}
+
+toflac () {
+		filename="${AUDIO_FILE%%.*}.flac"
+		ffmpeg -i "$AUDIO_FILE" -c:a flac "$filename" && rm "$AUDIO_FILE"
+		export AUDIO_FILE="$filename"
+}
+
+process_signle_audiofile() {
+
+		bitrate=$(mediainfo "$AUDIO_FILE" | grep "depth" | sed 's/[^0-9]*//g')
+
+		if [[ "$bitrate" -gt 16 ]]
+		then
+				tmp_file="${AUDIO_FILE%%.*}.tmp.flac"
+				cp "$AUDIO_FILE" "$tmp_file" && rm "$AUDIO_FILE"
+				ffmpeg -i "$tmp_file" -af aformat=s16:44100 "$AUDIO_FILE" && rm "$tmp_file"
+		fi
+}
+
+check_audio () {
+		non_flac_files=0
+		flac_file=0
+		# count number of audiofiles in directory
+		for file in *
 		do
-				if [ -d "${D}" ]
+				ext="${file##*.}"
+				if [ "$ext" == "flac" ]
 				then
-						cd "$D"
-						file_search
-						cd ..
+						let "flac_file++"
+				elif [[ "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
+				then
+						let "non_flac_files++"
+				fi
+		done
+		let "num_audio_files=$non_flac_files + $flac_file"
+
+		if [ "$num_audio_files" -gt 1 ]
+		then
+				if [ "$non_flac_files" -gt 1 ]
+				then
+						for file in *
+						do
+								export AUDIO_FILE="$file"
+								toflac
+						done
+						main
+				fi
+		else
+				if [ "$non_flac_files" == 1 ]
+				then
+						export AUDIO_FILE="$file"
+						toflac
+						process_signle_audiofile
+				else
+						export AUDIO_FILE="$file"
+						process_signle_audiofile
+				fi
+		fi
+}
+
+rename () {
+
+		clean_file_name="$(echo "$1" | sed 's/[^0-9a-zA-Z.]/_/g')"
+		if [[ "$1" != $clean_file_name ]]
+		then
+				mv "$1" "$clean_file_name"
+		fi
+}
+
+delete () {
+		printf '%s' "Delete flac & cue file [Y/n] "
+		read -r response
+
+		if [ "$response" != "${response#[Nn]}" ]
+		then
+				mv "$AUDIO_FILE" "$AUDIO_FILE".bak
+		else
+				rm "$AUDIO_FILE" "$CUE_FILE"
+		fi
+}
+
+unset_local_varibles () {
+		unset CUE_FILE
+		unset AUDIO_FILE
+}
+
+
+main () {
+		find . -print0 | while IFS= read -r -d '' file
+		do
+				if [[ ! -d  "$file" ]]
+				then
+						ext="${file##*.}"
+						if [[ "$ext" == "flac" || "$ext" == "m4a" || "$ext" == "ape" || "$ext" == "wav" || "$ext" == "wv" ]]
+						then
+								rename "$file"
+								check_cue
+								check_audio
+								split
+								delete
+								unset_local_varibles
+						fi
 				fi
 		done
 }
 
-check_dir () {
-		parent_dir_content=("$(ls)")
-		for item in ${parent_dir_content[@]}
-		do
-				[ -d "$item" ] && dir=true
-		done
-		if [[ ! -z "$dir" ]]
-		then
-				dir_search
-		else
-				file_search
-		fi
-}
-
-check_dir
+main
