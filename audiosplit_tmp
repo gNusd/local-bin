@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+   ###   #    # #    #  ####  License: GNU GPLv3
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ##  #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
+   ###   #    #  ####   ####
+
+# FILENAME: audiosplit
+## GLOBAL
+DIRLIST=()
+DIR_PATH=
+### converting all non-flac lossless audio files to flac
+CONVERT_FLAC() {
+		file_name=$(FNAME $AUDIO_FILE)
+		ffmpeg -i "$AUDIO_FILE" -c:a flac "$file_name" && rm "$AUDIO_FILE"
+		AUDIO_FILE="$file_name"
+		export AUDIO_FILE
+}
+
+dir_walk() {
+    for file in *
+    do
+        [ -d $file ] && DIRLIST+=("$file")
+        ext=$(EXT file)
+        case $ext in
+            flac)
+                export AUDIO_FILE="$file"
+                ;;
+            ape|m4a|wav|wv)
+                export AUDIO_FILE="$file"
+                CONVERT_FLAC
+                ;;
+            *)
+                echo "Could not find any valid audio files"
+                ;;
+        esac
+    done
+}

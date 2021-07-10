@@ -3,13 +3,23 @@
    ###   #    # #    #  ####  License: GNU GPLv3
   #    # ##   # #    # #      Year: 2020
   #      # #  # #    #  ####
-  #  ### #  # # #    #      # https://github.com/gnusd
+  #  ##  #  # # #    #      # https://github.com/gnusd
   #    # #   ## #    # #    # http://gnusd.xyz
    ###   #    #  ####   ####
 
 # FILENAME: audiosplit
 
-# FILE NAME HANDLING
+############################
+# GLOBAL VARIBLES & ARRAYS #
+############################
+
+au_ext_arr=("flac" "wav" "wv" "ape" "m4a")
+counted_files=()
+
+################################
+# FILE HANDLING SECTION STARTS #
+################################
+
 ### handling file names and extensions
 FNAME() {
 		echo "${1%%.*}"
@@ -21,28 +31,169 @@ FEXT() {
 REMOVE_SPACE() {
 		echo $"(echo "$1" | sed 's/[^0-9a-zA-Z.]/_/g')"
 }
+### renaming file to filename without spaces
+RENAME_FILE() {
+		mv 1 "$(REMOVE_SPACE 1)"
+}
 
-convet2flac() {
+##############################
+# FILE HANDLING SECTION ENDS #
+##############################
+
+######################
+# CUE SECTION STARTS #
+######################
+
+counting_cues() {
+		num_cues="$(ls | grep -c \.cue$)"
+}
+rename_cue() {
+		clean_cue="$(REMOVE_SPACE $1)"
+		if [ "$file" != "$clean_cue" ]
+		then
+				RENAME_FILE "$1"
+				CUE_FILE="$clean_cue"
+		else
+				CUE_FILE="$1"
+		fi
+}
+
+cue_files() {
+		array_name_cue_files=()
+		for file in *.cue
+		do
+				clean_cue="$(rename_cue $file)"
+				cue_file="$(analyze_cue $clean_cue)"
+				array_name_cue_files+=("$cue_file")
+		done
+}
+
+analyze_cue() {
+		track_num="$(cat $1 | grep -c TRACK)"
+		if [ "$track_num" -gt 1 ]
+		then
+				echo "$1"
+		fi
+}
+
+### comparing the different cue sheet in the foler
+diff_cue_files() {
+		array=($1)
+		comp="$(echo ${array[@]} | tr ' ' '\n' | sort | uniq -u)"
+
+		if [ -z "$comp" ]
+		then
+				for i in ${array[@]}
+				do
+						if [ "$i" -gt 1 ]
+						then
+								mv ${array[$i]} ${array[$i]}.bak
+						fi
+				done
+		else
+				echo "Incompatible cue cheets, need of manual intervension."
+				exit
+		fi
+}
+
+CUE_SHEET() {
+		num_cue="$(counting_cues)"
+		if [ "$num_cue" -gt 1 ]
+		then
+				array="$(cue_files)"
+				name_cue="$(diff_cue_files $array)"
+		else
+				name_cue="$(ls | grep *.cue)"
+		fi
+		CUE_FILE="$(analyze_cue $name_cue)"
+		export CUE_FILE
+}
+
+####################
+# CUE SECTION ENDS #
+####################
+
+########################
+# AUDIO SECTION STARTS #
+########################
+
+### spliting then audio file
+split() {
+		cuebreakpoints "$CUE_FILE" | shnsplit -o flac "$AUDIO_FILE"
+		cuetag "$CUE_FILE" split-track*.flac
+}
+
+counting_audio_files() {
+		num_audio_files="$(ls | grep -c $1)"
+}
+folder_count() {
+		for i in "$au_ext_arr[@]"
+		do
+				ext="(\.$i\$)"
+				counted_files+="$(counting_audio_files $ext)"
+		done
+}
+
+send_to_convert() {
+        counted_files=$(folder_count)
+        n=0
+        for i in "$counted_files[@]"
+        do 
+                if [ "$n" -gt 0 ] 
+                then 
+                        [ !-z $i ]
+                        NON_FLAC=1
+                        break
+                fi
+        done
+        if [ "$NON_FLAC" -eq 1 ]
+        then
+                
+                
+                        
+                    
+### converting all non-flac lossless audio files to flac
+CONVERT_FLAC() {
 		file_name=$(FNAME $AUDIO_FILE)
 		ffmpeg -i "$AUDIO_FILE" -c:a flac "$file_name" && rm "$AUDIO_FILE"
 		AUDIO_FILE="$file_name"
 		export AUDIO_FILE
 }
 
-# main
-for file in *
-do
-		ext=$(EXT file)
-		case $ext in
-				flac|)
-						export AUDIO_FILE="$file"
-						;;
-				ape|m4a|wav|wv)
-						export AUDIO_FILE="$file"
-						convet2flac
-						;;
-				*)
-						echo "Could not find any valid audio files"
-						;;
-		esac
-done
+
+
+######################
+# AUDIO SECTION ENDS #
+######################
+
+FILE_SEARCH() {
+    ext=$(EXT file)
+    case $ext in
+        flac)
+            export AUDIO_FILE="$file"
+            ;;
+        ape|m4a|wav|wv)
+            export AUDIO_FILE="$file"
+            CONVERT_FLAC
+            ;;
+            *)
+                echo "Could not find any valid audio files"
+                ;;
+    esac
+}
+
+MAIN() {
+    for D in *
+    do
+            if [ -d "${D}" ]
+            then
+                for file in * 
+                do 
+                    FILE_SEARCH
+                done
+            else
+                file="$D"
+                FILE_SEARCH
+            fi
+    done
+}

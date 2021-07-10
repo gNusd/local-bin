@@ -10,24 +10,33 @@
 # FILENAME: toflac
 
 toflac () {
-		file="${input// /_}"
-		filename="${file%%.*}.flac"
-		ffmpeg -i "$input" -c:a flac $filename && rm "$input"
+        file="${input// /_}"
+        filename="${file%%.*}.flac"
+        ffmpeg -i "$input" -c:a flac $filename && rm "$input"
 }
+
+file_search() {
+    ext="${file##*.}"
+    case "$ext" in
+        ape | wv | wav | m4a)
+            input="$file"
+            toflac
+            ;;
+        *)
+    esac
+
+}
+
 for D in *
 do
-		if [ -d "${D}" ]
-		then
-				for file in *
-				do
-						ext="${file##*.}"
-						case "$ext" in
-								ape | wv | wav | m4a)
-										input="$file"
-										toflac
-										;;
-								*)
-						esac
-				done
-		fi
+        if [ -d "${D}" ]
+        then
+        for file in * 
+        do 
+            file_search
+        done
+        else
+            file="$D"
+            file_search
+        fi
 done
