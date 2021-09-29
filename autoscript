@@ -7,7 +7,7 @@
   #    # #   ## #    # #    # http://gnusd.xyz
   ####  #    #  ####   ####
 
-  DIR="$HOME/projects/dev/"
+  DIR="$HOME/bin"
   if [[ "$1" == "-f" && "$3" == "-e" ]]
   then
 		  FILE="$2"
