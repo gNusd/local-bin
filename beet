@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
- 
+
  #####  #    # #    #  ####  License: GNU GPLv3
  #    # ##   # #    # #      Year: 2021
- #      # #  # #    #  ####  
+ #      # #  # #    #  ####
  #  ### #  # # #    #      # https://github.com/gnusd
- #    # #   ## #    # #    # http://gnusd.xyz 
+ #    # #   ## #    # #    # http://gnusd.xyz
  #####  #    #  ####   ####
- 
+
 # FILENAME: beet
 
 FLAG="$1"
 
-HELP () { 
+HELP () {
 
 	echo -e "\n \n\t Usage: beet OPTION \n\t ------------------ \n\t -i --import  \t to import to database \n\t -u --update  \t to update database"
 	exit
@@ -33,71 +33,57 @@ delete () {
 }
 
 progressbar () {
-		echo -ne 'initializing [                       ]\r'
+		echo -ne 'initializing [                ]\r'
 		sleep 1
-		echo -ne 'initializing [#                      ]\r'
+		echo -ne 'initializing [#               ]\r'
 		sleep 1
-		echo -ne 'initializing [##                     ]\r'
+		echo -ne 'initializing [##              ]\r'
 		sleep 1
-		echo -ne 'initializing [###                    ]\r'
+		echo -ne 'initializing [###             ]\r'
 		sleep 1
-		echo -ne 'initializing [####                   ]\r'
+		echo -ne 'initializing [####            ]\r'
 		sleep 1
-		echo -ne 'initializing [#####                  ]\r'
+		echo -ne 'initializing [#####           ]\r'
 		sleep 1
-		echo -ne 'initializing [######                 ]\r'
+		echo -ne 'initializing [######          ]\r'
 		sleep 1
-		echo -ne 'initializing [#######                ]\r'
+		echo -ne 'initializing [#######         ]\r'
 		sleep 1
-		echo -ne 'initializing [########               ]\r'
+		echo -ne 'initializing [########        ]\r'
 		sleep 1
-		echo -ne 'initializing [#########              ]\r'
+		echo -ne 'initializing [#########       ]\r'
 		sleep 1
-		echo -ne 'initializing [##########             ]\r'
+		echo -ne 'initializing [##########      ]\r'
 		sleep 1
-		echo -ne 'initializing [###########            ]\r'
+		echo -ne 'initializing [###########     ]\r'
 		sleep 1
-		echo -ne 'initializing [############           ]\r'
+		echo -ne 'initializing [############    ]\r'
 		sleep 1
-		echo -ne 'initializing [#############          ]\r'
+		echo -ne 'initializing [#############   ]\r'
 		sleep 1
-		echo -ne 'initializing [##############         ]\r'
+		echo -ne 'initializing [##############  ]\r'
 		sleep 1
-		echo -ne 'initializing [###############        ]\r'
+		echo -ne 'initializing [############### ]\r'
 		sleep 1
-		echo -ne 'initializing [################       ]\r'
-		sleep 1
-		echo -ne 'initializing [#################      ]\r'
-		sleep 1
-		echo -ne 'initializing [##################     ]\r'
-		sleep 1
-		echo -ne 'initializing [###################    ]\r'
-		sleep 1
-		echo -ne 'initializing [####################   ]\r'
-		sleep 1
-		echo -ne 'initializing [#####################  ]\r'
-		sleep 1
-		echo -ne 'initializing [###################### ]\r'
-		sleep 1
-		echo -ne 'initializing [#######################]\r'
+		echo -ne 'initializing [################]\r'
 		sleep 1
 		echo -ne '\n'
 }
 
 if  [[ "$music_dir" == "failed" || "$music_dir" == "inactive" ]]
-then 
+then
 	echo "music dir not mounted"
        	exit
-else 
+else
 	if [[ "$FLAG" == "--import" || "$FLAG" == "-i" ]]
-	then 
+	then
        		cd $HOME/docker/beets
        		docker-compose up -d
 		progressbar
-		docker exec -u abc -it beets /bin/bash -c 'beet import /downloads/imports'
+		docker exec -u abc -it beets /bin/bash -c 'beet import /downloads'
        		docker-compose down
 		delete
-		
+
 	elif [[ "$FLAG" == "--update" || "$FLAG" == "-u" ]]
 	then
        		cd $HOME/docker/beets
@@ -107,7 +93,4 @@ else
 	else
 		HELP
 	fi
-fi 
-
-
-
+fi
