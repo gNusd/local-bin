@@ -129,11 +129,8 @@ read_download () {
 }
 
 cd "$DIR_PATH" || exit
-current_dir="$(pwd)"
-echo "Changed directory $current_dir"
 
 FLAG="$(sort_flags)"
-echo "flag set to $FLAG"
 
 # if there is no flag passed check if there is a url
 if [ -z "$FLAG" ]
@@ -155,7 +152,3 @@ then
 else
 		echo "No flags and no url, nothing to do."
 fi
-
-unset VIA_USER
-unset VIA_PASS
-unset FLAG
