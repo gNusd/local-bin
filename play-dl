@@ -77,6 +77,7 @@ sort_flags () {
 				FLAG="$FLAG_2"
 
 		fi
+		export FLAG
 }
 
 #removing line from urls file after download is done
@@ -127,10 +128,12 @@ read_download () {
 
 }
 
-
 cd "$DIR_PATH" || exit
+current_dir="$(pwd)"
+echo "Changed directory $current_dir"
 
 FLAG="$(sort_flags)"
+echo "flag set to $FLAG"
 
 # if there is no flag passed check if there is a url
 if [ -z "$FLAG" ]
@@ -141,6 +144,7 @@ elif [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
 then
 		if [ -s "$DL_FROM_FILE_DIR/$DL_FILE" ]
 		then
+				cp "$DL_FROM_FILE_DIR/$DL_FILE" "$DL_FROM_FILE_DIR/$DL_FILE"
 				export FLAG
 				read_download
 		else
