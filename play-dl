@@ -10,8 +10,8 @@
 # FILENAME: play-dl
 
 # check which flags are passed
-FLAG_1="$(echo "$1" | grep -E '^-')"
-FLAG_2="$(echo "$1" | grep -E '^-')"
+FLAG_1="$(echo "$1" | grep  '-')"
+FLAG_2="$(echo "$2" | grep  '-')"
 URL_1="$(echo "$1" | grep -E '^(http|https)://')"
 URL_2="$(echo "$2" | grep -E '^(http|https)://')"
 
@@ -22,7 +22,7 @@ DL_FILE="urls"
 LOG_FILE="logs-dl"
 
 # username and password for viafree
-source $HOME/bin/SECRETS
+source "$HOME/bin/SECRETS"
 
 # date for log, I like varibles
 DATE="$(date)"
@@ -78,6 +78,7 @@ sort_flags () {
 
 		fi
 		export FLAG
+		echo "FLAG in sort_flags $FLAG"
 }
 
 #removing line from urls file after download is done
@@ -94,8 +95,10 @@ write_log () {
 rename_move () {
 		# get file identifyer
 		file_id="$(echo "$1" | sed 's#.*/##')"
+		echo "file_id: $file_id"
 		# get mp4 filesname
-		lmf="$(/usr/bin/ls | grep "$file_id" | grep mp4)"
+		lmf="$(ls  | grep "$file_id" | grep mp4)"
+		echo "lmf: $lmf"
 
 		# create a new name for the file
 		dir_name="$(echo "$lmf" | sed s'/-.*//g;s/\./_/g')"
@@ -119,8 +122,9 @@ read_download () {
 		while read -r line
 		do
 				DL="$(sort_urls "$line")"
+				echo "read_download: $DL"
 				eval "$DL" "$line"
-				rename_move
+				rename_move "$line"
 
 				comment_out_line
 				write_log "$nfn" "$line"
@@ -130,7 +134,7 @@ read_download () {
 
 cd "$DIR_PATH" || exit
 
-FLAG="$(sort_flags)"
+sort_flags
 
 # if there is no flag passed check if there is a url
 if [ -z "$FLAG" ]
@@ -141,7 +145,7 @@ elif [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
 then
 		if [ -s "$DL_FROM_FILE_DIR/$DL_FILE" ]
 		then
-				cp "$DL_FROM_FILE_DIR/$DL_FILE" "$DL_FROM_FILE_DIR/$DL_FILE"
+				cp "$DL_FROM_FILE_DIR/$DL_FILE" "$DL_FROM_FILE_DIR/$DL_FILE".bak
 				export FLAG
 				read_download
 		else
