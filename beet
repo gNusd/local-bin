@@ -79,16 +79,17 @@ else
 	then
        		cd $HOME/docker/beets
        		docker-compose up -d
-		progressbar
-		docker exec -u abc -it beets /bin/bash -c 'beet import /downloads'
+		    progressbar
+		    docker exec -u abc -it beets /bin/bash -c 'beet import /downloads'
        		docker-compose down
-		delete
+		    delete
 
 	elif [[ "$FLAG" == "--update" || "$FLAG" == "-u" ]]
 	then
        		cd $HOME/docker/beets
        		docker-compose up -d
-		docker exec -it beets /bin/bash -c 'beet update'
+		    progressbar
+		    docker exec -it beets /bin/bash -c 'beet update'
        		docker-compose down
 	else
 		HELP
