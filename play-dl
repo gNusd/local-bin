@@ -48,6 +48,7 @@ sort_urls () {
 		then
 				URL="$1"
 		fi
+		export URL
 
 		# checking what site to download from
 		case "$URL" in
@@ -64,6 +65,7 @@ sort_urls () {
 						echo "$DL"
 						;;
 		esac
+
 }
 
 # checking which flag if any is passed
@@ -115,6 +117,11 @@ rename_move () {
 				then
 						[ ! -d "$DOC_PATH/$dir_name" ] && mkdir "$DOC_PATH/$dir_name"
 						[ ! -f "$DOC_PATH/$dir_name/$nfn" ] && mv "$DIR_PATH/$lmf" "$DOC_PATH/$dir_name/$nfn"
+
+				elif [ -z "$FLAG" ] && [ ! -z "$URL" ]
+				then
+						[ ! -d "$VIDEO_PATH/$dir_name" ] && mkdir "$VIDEO_PATH/$dir_name"
+						[ ! -f "$VIDEO_PATH/$dir_name/$nfn" ] && mv "$DIR_PATH/$lmf" "$VIDEO_PATH/$dir_name/$nfn"
 				fi
 		else
 				write_log "Could not find the file, lmf = $lmf" "$1"
@@ -142,6 +149,10 @@ sort_flags
 if [ -z "$FLAG" ]
 then
 		sort_urls
+		eval "$DL" "$URL"
+		rename_move
+		write_log
+
 # if there is a flag
 elif [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
 then
