@@ -33,7 +33,7 @@ source "$HOME/bin/SECRETS"
 
 # download methods
 METHOD_SVTPLAY="svtplay-dl"
-if [ "$HOSTNAME" == "tyrellcorp" ]
+if [ "$HOSTNAME" == "tyrellCorp" ]
 then 
 	METHOD_TV4="svtplay-dl"
 else
