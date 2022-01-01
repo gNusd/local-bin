@@ -33,7 +33,12 @@ source "$HOME/bin/SECRETS"
 
 # download methods
 METHOD_SVTPLAY="svtplay-dl"
-METHOD_TV4="youtube-dl --restrict-filenames"
+if [ "$HOSTNAME" == "tyrellcorp" ]
+then 
+	METHOD_TV4="svtplay-dl"
+else
+	METHOD_TV4="youtube-dl --restrict-filenames"
+fi
 METHOD_VIAFREE="svtplay-dl -u "$VIA_USER" -p "$VIA_PASS""
 
 #check for where the URL are
