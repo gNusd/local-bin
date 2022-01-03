@@ -35,7 +35,7 @@ TV_SERIES_PATH="$HOME/mnt/bob/tv-shows"
 # download methods
 METHOD_SVTPLAY="svtplay-dl"
 if [ "$HOSTNAME" == "tyrellCorp" ]
-then 
+then
 	METHOD_TV4="svtplay-dl"
 else
 	METHOD_TV4="youtube-dl --restrict-filenames"
@@ -104,12 +104,12 @@ dl_tv_shows () {
 	URL="$1"
 	[ -f  "$DL_FROM_FILE_DIR/$LOG_FILE" ] && last_dl_date="$(sort < "$DL_FROM_FILE_DIR/$LOG_FILE" | grep "$URL" | tail -1 | sed 's/\(.*\)\s.*/\1/')"
 	tmpdir="$RANDOM""$RANDOM"
-	mkdir -p "$DIR_PATH/$tmpdir" 	
+	mkdir -p "$DIR_PATH/$tmpdir"
 	cd "$DIR_PATH/$tmpdir" || exit
-	
+
 	# check if link points to viafree
 	check_url="$(echo "$DL" | grep 'u')"
-	
+
 	# TODO: make the if statement easier
 	if [ -n "$last_dl_date" ]
 	then
@@ -118,22 +118,21 @@ dl_tv_shows () {
 			svtplay-dl -A --after-date "$last_dl_date" -u "$VIA_USER" -p "$VIA_PASS" "$URL"
 		else
 			svtplay-dl -A --after-date "$last_dl_date" "$URL"
-		fi 
+		fi
 	else
 		if [ -n "$check_url" ]
 		then
 			svtplay-dl -A -u "$VIA_USER" -p "$VIA_PASS" "$URL"
 		else
 			svtplay-dl -A "$URL"
-		fi 
-	fi	
-		 
+		fi
+	fi
+
 	echo "$tmpdir"
 }
 
 # rename and move files to tv-show directory
 move_tv_shows () {
-	# TODO: walk through directory and rename files move to tv-shows directory 
 
 	tmpdir="$1"
 	cd "$DIR_PATH/$tmpdir" || exit
@@ -144,23 +143,23 @@ move_tv_shows () {
 			# getting season and episod number
 			season="$(echo "$ep" | sed 's/^.*\.s\([0-9]*\).*/\1/')"
 			episod="$(echo "$ep" | sed 's/^.*s[0-9]*e\([0-9]*\).*/\1/')"
-			
-			# creating season directory 	
+
+			# creating season directory
 			season_dir="season_$season"
 			dir_name="$(echo "$ep" | sed s'/^\(.*\)\.s[0-9].*/\1/' | sed s'/\./_/g')"
 
 			# creating file name
 			ep_name="$dir_name""_s""$season""e""$episod"".mp4"
-			
+
 			# checking to see if directory for the tv-show and season is created
-			[ ! -d "$DIR_PATH/$tmpdir/$dir_name" ] && mkdir -p "$DIR_PATH/$tmpdir/$dir_name" 
-			[ ! -d "$DIR_PATH/$tmpdir/$dir_name/$season_dir" ] && mkdir -p "$DIR_PATH/$tmpdir/$dir_name/$season_dir" 
+			[ ! -d "$DIR_PATH/$tmpdir/$dir_name" ] && mkdir -p "$DIR_PATH/$tmpdir/$dir_name"
+			[ ! -d "$DIR_PATH/$tmpdir/$dir_name/$season_dir" ] && mkdir -p "$DIR_PATH/$tmpdir/$dir_name/$season_dir"
 
 			# move file into directory
-			mv "$DIR_PATH/$tmpdir/$ep" "$DIR_PATH/$tmpdir/$dir_name/$season_dir/$ep_name"  		
+			mv "$DIR_PATH/$tmpdir/$ep" "$DIR_PATH/$tmpdir/$dir_name/$season_dir/$ep_name"
 		fi
 	done
-	mv "$DIR_PATH/$tmpdir/$dir_name"  "$TV_SERIES_PATH"  
+	mv "$DIR_PATH/$tmpdir/$dir_name"  "$TV_SERIES_PATH"
 }
 
 # renaming and moving to the correct directory
