@@ -115,16 +115,16 @@ dl_tv_shows () {
 	then
 		if [ -n "$check_url" ]
 		then
-			svtplay-dl -A --after-date "$last_dl_date" -u "$VIA_USER" -p "$VIA_PASS" "$URL"
+			svtplay-dl -A -M --after-date "$last_dl_date" -u "$VIA_USER" -p "$VIA_PASS" "$URL"
 		else
-			svtplay-dl -A --after-date "$last_dl_date" "$URL"
+			svtplay-dl -A -M --after-date "$last_dl_date" "$URL"
 		fi
 	else
 		if [ -n "$check_url" ]
 		then
-			svtplay-dl -A -u "$VIA_USER" -p "$VIA_PASS" "$URL"
+			svtplay-dl -A -M -u "$VIA_USER" -p "$VIA_PASS" "$URL"
 		else
-			svtplay-dl -A "$URL"
+			svtplay-dl -A -M "$URL"
 		fi
 	fi
 
