@@ -30,7 +30,7 @@ DOC_PATH="$HOME/mnt/bob/documentaries"
 TV_SERIES_PATH="$HOME/mnt/bob/tv-shows"
 
 # username and password for viafree
-[ -f "$HOME/bin/SECRET" ] && source "$HOME/bin/SECRETS"
+[ -f "$HOME/bin/SECRETS" ] && source "$HOME/bin/SECRETS"
 
 # download methods
 METHOD_SVTPLAY="svtplay-dl"
@@ -66,7 +66,7 @@ sort_urls () {
 						DL="$METHOD_TV4"
 						echo "$DL"
 						;;
-				*vi4afree*)
+				*viafree*)
 						DL="$METHOD_VIAFREE"
 						echo "$DL"
 						;;
