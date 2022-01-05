@@ -33,14 +33,14 @@ TV_SERIES_PATH="$HOME/mnt/bob/tv-shows"
 [ -f "$HOME/bin/SECRETS" ] && source "$HOME/bin/SECRETS"
 
 # download methods
-METHOD_SVTPLAY="svtplay-dl"
+METHOD_SVTPLAY="svtplay-dl --merge-subtitle"
 if [ "$HOSTNAME" == "tyrellCorp" ]
 then
-	METHOD_TV4="svtplay-dl"
+	METHOD_TV4="svtplay-dl --merge-subtitle"
 else
 	METHOD_TV4="youtube-dl --restrict-filenames"
 fi
-METHOD_VIAFREE="svtplay-dl -u $VIA_USER -p $VIA_PASS"
+METHOD_VIAFREE="svtplay-dl --merge-subtitle -u $VIA_USER -p $VIA_PASS"
 
 #check for where the URL are
 sort_urls () {
@@ -115,16 +115,16 @@ dl_tv_shows () {
 	then
 		if [ -n "$check_url" ]
 		then
-			svtplay-dl -A -M --after-date "$last_dl_date" -u "$VIA_USER" -p "$VIA_PASS" "$URL"
+			svtplay-dl -A --after-date "$last_dl_date" -u "$VIA_USER" -p "$VIA_PASS" "$URL"
 		else
-			svtplay-dl -A -M --after-date "$last_dl_date" "$URL"
+			svtplay-dl -A --after-date "$last_dl_date" "$URL"
 		fi
 	else
 		if [ -n "$check_url" ]
 		then
-			svtplay-dl -A -M -u "$VIA_USER" -p "$VIA_PASS" "$URL"
+			svtplay-dl -A -u "$VIA_USER" -p "$VIA_PASS" "$URL"
 		else
-			svtplay-dl -A -M "$URL"
+			svtplay-dl -A "$URL"
 		fi
 	fi
 
@@ -168,13 +168,14 @@ rename_move () {
 		file_id="$(echo "$1" | sed 's#.*/##' | sed 's#.*\.##;s#.*-##')"
 
 		# get mp4 filesname
-		lmf="$(/usr/bin/find . -type f -name "*.mp4" | grep "$file_id")"
-		[ -z "$lmf" ] && lmf="$(/usr/bin/find . -type f -name "*.mp4" | sort | tail -1)"
+		lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | grep "$file_id" | sed s'/^\.\/\(.*\)/\1/')"
+		[ -z "$lmf" ] && lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | sort | tail -1 | sed s'/^\.\/\(.*\)/\1/')"
+
 
 		if [ -n "$lmf" ]
 		then
 				# create a new name for the file
-				dir_name="$(echo "$lmf" | sed s'/-.*//g';s'/\./_/g')"
+				dir_name="$(echo "$lmf" | sed s'/^\(.*\)-[0-9].*/\1/g' | sed s'/\.-/_/g')"
 				nfn="$dir_name".mp4
 
 				# checking if the destination is video or documentary
