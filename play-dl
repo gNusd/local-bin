@@ -15,6 +15,10 @@ FLAG_2="$(echo "$2" | grep  '-')"
 URL_1="$(echo "$1" | grep -E '^(http|https)://')"
 URL_2="$(echo "$2" | grep -E '^(http|https)://')"
 
+# Development paths
+# DIR_PATH="$HOME/tmp/play-dl"
+# DL_FROM_FILE_DIR="$HOME/tmp/play-dl/files"
+
 # paths to different download related stuff
 DIR_PATH="$HOME/mnt/bob/downloads/play-dl"
 DL_FROM_FILE_DIR="$HOME/mnt/bob/downloads/play-dl/files"
@@ -24,6 +28,11 @@ LOG_FILE="logs-dl"
 # date for log, I like varibles
 DATE="$(date '+%Y-%m-%d')"
 
+#development paths
+# VIDEO_PATH="$HOME/tmp/video"
+# DOC_PATH="$HOME/tmp/documentaries"
+# TV_SERIES_PATH="$HOME/tmp/tv-shows"
+
 # destination paths for video and dockumentaries
 VIDEO_PATH="$HOME/mnt/bob/video"
 DOC_PATH="$HOME/mnt/bob/documentaries"
@@ -31,14 +40,16 @@ TV_SERIES_PATH="$HOME/mnt/bob/tv-shows"
 
 # username and password for viafree
 [ -f "$HOME/bin/SECRETS" ] && source "$HOME/bin/SECRETS"
+# username and password for viafree in dev enviroment
+[ -f "$HOME/.local/git/local/code/development/SECRETS" ] && source "$HOME/.local/git/local/code/development/SECRETS" 
 
 # download methods
 METHOD_SVTPLAY="svtplay-dl --merge-subtitle"
-if [ "$HOSTNAME" == "tyrellCorp" ]
+if [ "$HOSTNAME" == "debian" ]
 then
-	METHOD_TV4="svtplay-dl --merge-subtitle"
-else
 	METHOD_TV4="youtube-dl --restrict-filenames"
+else
+	METHOD_TV4="svtplay-dl --merge-subtitle"
 fi
 METHOD_VIAFREE="svtplay-dl --merge-subtitle -u $VIA_USER -p $VIA_PASS"
 
@@ -170,12 +181,22 @@ rename_move () {
 		# get mp4 filesname
 		lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | grep "$file_id" | sed s'/^\.\/\(.*\)/\1/')"
 		[ -z "$lmf" ] && lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | sort | tail -1 | sed s'/^\.\/\(.*\)/\1/')"
+		
 
 
 		if [ -n "$lmf" ]
 		then
 				# create a new name for the file
-				dir_name="$(echo "$lmf" | sed s'/^\(.*\)-[0-9].*/\1/g' | sed s'/\.-/_/g')"
+				dir_name="$(echo "$lmf" | sed s'/^\(.*\)-[0-9].*/\1/g' | sed 's/\./_/g')"
+				comp_1="$(echo "${dir_name#*_}" | sed 's/_//g')"
+				comp_2="$(echo "${dir_name%%_*}" | sed 's/-//g')"
+
+				# check to see if name dir_name contains the name twice 
+				if [ "$comp_1" == "$comp_2" ]
+				then
+					dir_name="$(echo "${dir_name#*_}")"
+				fi
+
 				nfn="$dir_name".mp4
 
 				# checking if the destination is video or documentary
