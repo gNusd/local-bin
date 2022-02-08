@@ -182,7 +182,7 @@ rename_move () {
 		lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | grep "$file_id" | sed s'/^\.\/\(.*\)/\1/')"
 		[ -z "$lmf" ] && lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | sort | tail -1 | sed s'/^\.\/\(.*\)/\1/')"
 
-		TV4="$(echo lmf | grep tv4play)"
+		TV4="$(echo "$lmf" | grep tv4play)"
 
 
 		if [ -n "$lmf" ]
