@@ -41,7 +41,7 @@ TV_SERIES_PATH="$HOME/mnt/bob/tv-shows"
 # username and password for viafree
 [ -f "$HOME/bin/SECRETS" ] && source "$HOME/bin/SECRETS"
 # username and password for viafree in dev enviroment
-[ -f "$HOME/.local/git/local/code/development/SECRETS" ] && source "$HOME/.local/git/local/code/development/SECRETS" 
+[ -f "$HOME/.local/git/local/code/development/SECRETS" ] && source "$HOME/.local/git/local/code/development/SECRETS"
 
 # download methods
 METHOD_SVTPLAY="svtplay-dl --merge-subtitle"
@@ -181,20 +181,27 @@ rename_move () {
 		# get mp4 filesname
 		lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | grep "$file_id" | sed s'/^\.\/\(.*\)/\1/')"
 		[ -z "$lmf" ] && lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | sort | tail -1 | sed s'/^\.\/\(.*\)/\1/')"
-		
+
+		TV4="$(echo lmf | grep tv4play)"
 
 
 		if [ -n "$lmf" ]
 		then
 				# create a new name for the file
-				dir_name="$(echo "$lmf" | sed s'/^\(.*\)-[0-9].*/\1/g' | sed 's/\./_/g')"
-				comp_1="$(echo "${dir_name#*_}" | sed 's/_//g')"
-				comp_2="$(echo "${dir_name%%_*}" | sed 's/-//g')"
+				if [ -z "$TV4" ]
+				then
+						dir_name="$(echo "$lmf" | cut -d "-" -f1 | sed 's/\./_/g')"
+				else
+						echo "$TV4"
+						dir_name="$(echo "$lmf" | sed s'/^\(.*\)-[0-9].*/\1/g' | sed 's/\./_/g')"
+						comp_1="$(echo "${dir_name#*_}" | sed 's/_//g')"
+						comp_2="$(echo "${dir_name%%_*}" | sed 's/-//g')"
 
-				# check to see if name dir_name contains the name twice 
+				fi
+				# check to see if name dir_name contains the name twice
 				if [ "$comp_1" == "$comp_2" ]
 				then
-					dir_name="$(echo "${dir_name#*_}")"
+						dir_name="$(echo "${dir_name#*_}")"
 				fi
 
 				nfn="$dir_name".mp4
