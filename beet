@@ -17,8 +17,6 @@ HELP () {
 	exit
 }
 
-# Check if the music directory is mounted
-music_dir="$(systemctl is-active home-gnus-mnt-music.mount)"
 
 [ -z "$FLAG" ] && HELP
 
@@ -70,28 +68,30 @@ progressbar () {
 		echo -ne '\n'
 }
 
-if  [[ "$music_dir" == "failed" || "$music_dir" == "inactive" ]]
+if [[ "$FLAG" == "--import" || "$FLAG" == "-i" ]]
 then
-	echo "music dir not mounted"
-       	exit
-else
-	if [[ "$FLAG" == "--import" || "$FLAG" == "-i" ]]
-	then
-       		cd $HOME/docker/beets
-       		docker-compose up -d
-		    progressbar
-		    docker exec -u abc -it beets /bin/bash -c 'beet import /downloads'
-       		docker-compose down
-		    delete
+	cd $HOME/docker/beets
+	docker-compose up -d
+	    progressbar
+	    docker exec -u abc -it beets /bin/bash -c 'beet import /downloads'
+	docker-compose down
+	    delete
 
-	elif [[ "$FLAG" == "--update" || "$FLAG" == "-u" ]]
-	then
-       		cd $HOME/docker/beets
-       		docker-compose up -d
-		    progressbar
-		    docker exec -it beets /bin/bash -c 'beet update'
-       		docker-compose down
-	else
-		HELP
-	fi
+elif [[ "$FLAG" == "--update" || "$FLAG" == "-u" ]]
+then
+	cd $HOME/docker/beets
+	docker-compose up -d
+	    progressbar
+	    docker exec -it beets /bin/bash -c 'beet update'
+	docker-compose down
+
+elif [[ "$FLAG" == "--art" || "$FLAG" == "-a" ]]
+then
+	cd $HOME/docker/beets
+	docker-compose up -d
+	    progressbar
+	    docker exec -it beets /bin/bash -c 'beet fetchart'
+	docker-compose down
+else
+	HELP
 fi

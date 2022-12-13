@@ -45,14 +45,8 @@ TV_SERIES_PATH="$HOME/mnt/video/tv-serier"
 
 # download methods
 METHOD_SVTPLAY="svtplay-dl --merge-subtitle"
-if [ "$HOSTNAME" == "debian" ]
-then
-	METHOD_TV4="youtube-dl --restrict-filenames"
-else
-	METHOD_TV4="svtplay-dl --merge-subtitle"
-fi
-METHOD_VIAFREE="svtplay-dl --merge-subtitle S"
-
+METHOD_TV4="svtplay-dl --merge-subtitle"
+METHOD_YT="youtube-dl --all-subs"
 #check for where the URL are
 sort_urls () {
 		if [ -n "$URL_1" ]
