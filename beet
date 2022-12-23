@@ -24,74 +24,60 @@ delete () {
 	printf '%s' "Clear import directory [Y/n] "
 	read -r response
 
-	if [ "$response" != "${response#[Nn]}" ]
+	if [ "$response" == "${response#[Yy]}" ]
 	then
 		rm -rf "$HOME/mnt/downloads/imports/*"
 	fi
 }
 
 progressbar () {
-		echo -ne 'initializing [                ]\r'
+		echo -ne 'initializing [         ]\r'
 		sleep 1
-		echo -ne 'initializing [#               ]\r'
+		echo -ne 'initializing [#        ]\r'
 		sleep 1
-		echo -ne 'initializing [##              ]\r'
+		echo -ne 'initializing [##       ]\r'
 		sleep 1
-		echo -ne 'initializing [###             ]\r'
+		echo -ne 'initializing [###      ]\r'
 		sleep 1
-		echo -ne 'initializing [####            ]\r'
+		echo -ne 'initializing [####     ]\r'
 		sleep 1
-		echo -ne 'initializing [#####           ]\r'
+		echo -ne 'initializing [#####    ]\r'
 		sleep 1
-		echo -ne 'initializing [######          ]\r'
+		echo -ne 'initializing [######   ]\r'
 		sleep 1
-		echo -ne 'initializing [#######         ]\r'
+		echo -ne 'initializing [#######  ]\r'
 		sleep 1
-		echo -ne 'initializing [########        ]\r'
+		echo -ne 'initializing [######## ]\r'
 		sleep 1
-		echo -ne 'initializing [#########       ]\r'
-		sleep 1
-		echo -ne 'initializing [##########      ]\r'
-		sleep 1
-		echo -ne 'initializing [###########     ]\r'
-		sleep 1
-		echo -ne 'initializing [############    ]\r'
-		sleep 1
-		echo -ne 'initializing [#############   ]\r'
-		sleep 1
-		echo -ne 'initializing [##############  ]\r'
-		sleep 1
-		echo -ne 'initializing [############### ]\r'
-		sleep 1
-		echo -ne 'initializing [################]\r'
+		echo -ne 'initializing [#########]\r'
 		sleep 1
 		echo -ne '\n'
 }
 
 if [[ "$FLAG" == "--import" || "$FLAG" == "-i" ]]
 then
-	cd $HOME/docker/beets
-	docker-compose up -d
+	    docker start beets
 	    progressbar
 	    docker exec -u abc -it beets /bin/bash -c 'beet import /downloads'
-	docker-compose down
+    	    docker stop beets
 	    delete
 
 elif [[ "$FLAG" == "--update" || "$FLAG" == "-u" ]]
 then
-	cd $HOME/docker/beets
-	docker-compose up -d
+	cd $HOME/container/beets
+
+	    docker start beets
 	    progressbar
 	    docker exec -it beets /bin/bash -c 'beet update'
-	docker-compose down
+    	    docker stop beets
 
 elif [[ "$FLAG" == "--art" || "$FLAG" == "-a" ]]
 then
-	cd $HOME/docker/beets
-	docker-compose up -d
+	cd $HOME/container/beets
+	    docker start beets
 	    progressbar
 	    docker exec -it beets /bin/bash -c 'beet fetchart'
-	docker-compose down
+    	    docker stop beets
 else
 	HELP
 fi
