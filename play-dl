@@ -44,9 +44,7 @@ TV_SERIES_PATH="$HOME/mnt/video/tv-serier"
 [ -f "$HOME/.local/git/local/code/development/SECRETS" ] && source "$HOME/.local/git/local/code/development/SECRETS"
 
 # download methods
-METHOD_SVTPLAY="svtplay-dl --merge-subtitle"
-METHOD_TV4="svtplay-dl --merge-subtitle"
-METHOD_YT="youtube-dl --all-subs"
+METHOD_SVTPLAY="svtplay-dl  --merge-subtitle --nfo $SVT_PLAY_FLAGS"
 #check for where the URL are
 sort_urls () {
 		if [ -n "$URL_1" ]
@@ -68,7 +66,7 @@ sort_urls () {
 						echo "$DL"	
 						;;
 				*tv4*)
-						DL="$METHOD_TV4"
+						DL="$METHOD_SVTPLAY"
 						echo "$DL"
 						;;
 				*pluto*)
@@ -250,6 +248,7 @@ sort_flags
 # if there is no flag passed check if there is a url
 if [ -z "$FLAG" ]
 then
+		SVT_PLAY_FLAGS=" --filename {title}.{ext}"
 		sort_urls
 		eval "$DL" "$URL"
 		rename_move
@@ -261,6 +260,7 @@ then
 		if [ -s "$DL_FROM_FILE_DIR/$DL_FILE" ]
 		then
         		backup_url_file
+				SVT_PLAY_FLAGS=" --filename {title}.{ext}"
 				export FLAG
 				read_download
 		else
@@ -269,6 +269,7 @@ then
 elif [[ "$FLAG" == "-s" ]]
 then
         backup_url_file
+		SVT_PLAY_FLAGS=" --all-episodes --filename {title}_s{season}e{episode}.{ext}"
         export FLAG
 		read_dl_file_tv_shows
 
