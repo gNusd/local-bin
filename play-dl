@@ -29,7 +29,7 @@ then
 	#development paths
 	VIDEO_PATH="$DL_FROM_FILE_DIR/video/filmer"
 	DOC_PATH="$DL_FROM_FILE_DIR/video/documentaries"
-	TV_SERIES_PATH="$DL_FROM_FILE_DIR/video/tv-shows"
+	TV_SERIES_PATH="$DL_FROM_FILE_DIR/video/tv-serier"
 else
 	#destination paths for video and dockumentaries
 	VIDEO_PATH="$HOME/mnt/video/filmer"
@@ -78,10 +78,10 @@ create_dl_dir () {
 	export TITLE
 	if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
 	then 
-		DL="svtplay-dl --subtitle --nfo  --filename {title}.{ext} --output $TITLE"
+		DL="svtplay-dl --subtitle --nfo --thumbnail --filename {title}.{ext} --output $TITLE"
 	elif [[ "$FLAG" == "-s" ]]
 	then
-		DL="svtplay-dl --subtitle --nfo --all-episodes --filename {title}_s{season}e{episode}.{ext} --output $TITLE"
+		DL="svtplay-dl --subtitle --nfo --thumbnail --all-episodes --filename {title}_s{season}e{episode}.{ext} --output $TITLE"
 	fi
 	export DL
 }
@@ -101,10 +101,12 @@ move () {
 	then 
 		cd "$DIR_PATH/$dir_name" || exit
 		seasons="$(ls *.mp4 | sed s'/.*_s\(..\).*/\1/'| uniq)"
+		title="$(ls *.mp4 | sed s'/\(.*\)_s.*/\1/'| uniq)"
+
 		for num in "${seasons[@]}"
 		do
 			mkdir "$DIR_PATH/$dir_name/season_${num}"
-			mv "$DIR_PATH/$dir_name/${dir_name}_s${num}*" "$DIR_PATH/$dir_name/season_${num}"
+			mv "$DIR_PATH/$dir_name/${title}_s${num}"* "$DIR_PATH/$dir_name/season_${num}"
 		done
 		mv "$DIR_PATH/$dir_name" "$TV_SERIES_PATH/"
 	fi
