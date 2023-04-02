@@ -12,12 +12,7 @@
 # check which flags are passed
 FLAG_1="$(echo "$1" | grep  '-')"
 FLAG_2="$(echo "$2" | grep  '-')"
-URL_1="$(echo "$1" | grep -E '^(http|https)://')"
-URL_2="$(echo "$2" | grep -E '^(http|https)://')"
-
-# Development paths
-# DIR_PATH="$HOME/tmp/play-dl"
-# DL_FROM_FILE_DIR="$HOME/tmp/play-dl/files"
+DEBUG=true
 
 # paths to different download related stuff
 DIR_PATH="$HOME/mnt/downloads/play-dl"
@@ -28,54 +23,19 @@ LOG_FILE="logs-dl"
 # date for log, I like varibles
 DATE="$(date '+%Y-%m-%d')"
 
-#development paths
-# VIDEO_PATH="$HOME/tmp/video"
-# DOC_PATH="$HOME/tmp/documentaries"
-# TV_SERIES_PATH="$HOME/tmp/tv-shows"
-
-# destination paths for video and dockumentaries
-VIDEO_PATH="$HOME/mnt/video/filmer"
-DOC_PATH="$HOME/mnt/video/dokumentärer/filmer"
-TV_SERIES_PATH="$HOME/mnt/video/tv-serier"
-
-# username and password for viafree
-[ -f "$HOME/bin/SECRETS" ] && source "$HOME/bin/SECRETS"
-# username and password for viafree in dev enviroment
-[ -f "$HOME/.local/git/local/code/development/SECRETS" ] && source "$HOME/.local/git/local/code/development/SECRETS"
-
-# download methods
-METHOD_SVTPLAY="svtplay-dl  --merge-subtitle --nfo $SVT_PLAY_FLAGS"
-#check for where the URL are
-sort_urls () {
-		if [ -n "$URL_1" ]
-		then
-				URL="$URL_1"
-		elif [ -n "$URL_2" ]
-		then
-				URL="$URL_2"
-		elif [ -n "$1" ]
-		then
-				URL="$1"
-		fi
-		export URL
-
-		# checking what site to download from
-		case "$URL" in
-				*svt*)
-						DL="$METHOD_SVTPLAY"
-						echo "$DL"	
-						;;
-				*tv4*)
-						DL="$METHOD_SVTPLAY"
-						echo "$DL"
-						;;
-				*pluto*)
-						DL="$METHOD_SVTPLAY"
-						echo "$DL"
-						;;
-		esac
-
-}
+# select paths
+if [[ "$DEBUG" == true ]]
+then 
+	#development paths
+	VIDEO_PATH="$DL_FROM_FILE_DIR/video/filmer"
+	DOC_PATH="$DL_FROM_FILE_DIR/video/documentaries"
+	TV_SERIES_PATH="$DL_FROM_FILE_DIR/video/tv-shows"
+else
+	#destination paths for video and dockumentaries
+	VIDEO_PATH="$HOME/mnt/video/filmer"
+	DOC_PATH="$HOME/mnt/video/dokumentärer/filmer"
+	TV_SERIES_PATH="$HOME/mnt/video/tv-serier"
+fi
 
 # checking which flag if any is passed
 sort_flags () {
@@ -93,7 +53,7 @@ sort_flags () {
 
 #removing line from urls file after download is done
 delete_line () {
-		sed -i '1d' "$DL_FROM_FILE_DIR/$DL_FILE"
+		sed -i '/$1/d' "$DL_FROM_FILE_DIR/$DL_FILE"
 }
 
 # write to log file
@@ -101,137 +61,63 @@ write_log () {
 		printf "%s \t %s \t [%s]\n"   "$DATE" "$1" "$FLAG" >> "$DL_FROM_FILE_DIR/$LOG_FILE"
 }
 
-# download tv-shows to a tmp directory
-dl_tv_shows () {
-	DL="$(sort_urls "$1")"
-	URL="$1"
-	[ -f  "$DL_FROM_FILE_DIR/$LOG_FILE" ] && last_dl_date="$(sort < "$DL_FROM_FILE_DIR/$LOG_FILE" | grep "$URL" | tail -1 | sed 's/\(.*\)\s.*/\1/')"
-	tmpdir="$RANDOM""$RANDOM"
-	mkdir -p "$DIR_PATH/$tmpdir"
-	cd "$DIR_PATH/$tmpdir" || exit
+create_dl_dir () {
+	svt="$(echo "$1" | grep svt)"
+	tv4="$(echo "$1" | grep tv4)"
 
-	# check if link points to viafree
-	check_url="$(echo "$DL" | grep 'u')"
-
-	# TODO: make the if statement easier
-	if [ -n "$last_dl_date" ]
+	if [[ ! -z "$svt" ]]
 	then
-		if [ -n "$check_url" ]
-		then
-			svtplay-dl -A --after-date "$last_dl_date" "$URL"
-		fi
-	else
-		if [ -n "$check_url" ]
-		then
-			svtplay-dl -A "$URL"
-		fi
+		name="$(echo "$svt" | sed 's#.*/##')"
+		TITLE="$(echo "$name" | sed 's/-/_/g')"
+	elif [[ ! -z "$tv4" ]]
+	then
+		name="$(echo "$tv4" | sed s'/^.*program\/\(.*\)\/.*\/.*/\1/g')"
+		TITLE="$(echo "$name" | sed s'/-/_/g')"
 	fi
-
-	echo "$tmpdir"
+	mkdir "$DIR_PATH/$TITLE" 
+	export TITLE
+	if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
+	then 
+		DL="svtplay-dl --subtitle --nfo  --filename {title}.{ext} --output $TITLE"
+	elif [[ "$FLAG" == "-s" ]]
+	then
+		DL="svtplay-dl --subtitle --nfo --all-episodes --filename {title}_s{season}e{episode}.{ext} --output $TITLE"
+	fi
+	export DL
 }
-
-# rename and move files to tv-show directory
-move_tv_shows () {
-
-	tmpdir="$1"
-	cd "$DIR_PATH/$tmpdir" || exit
-	for ep in *
-	do
-		if [ -f "$ep" ]
-		then
-			# getting season and episod number
-			season="$(echo "$ep" | sed 's/^.*\.s\([0-9]*\).*/\1/')"
-			episod="$(echo "$ep" | sed 's/^.*s[0-9]*e\([0-9]*\).*/\1/')"
-
-			# creating season directory
-			season_dir="season_$season"
-			dir_name="$(echo "$ep" | sed s'/^\(.*\)\.s[0-9].*/\1/' | sed s'/\./_/g')"
-
-			# creating file name
-			ep_name="$dir_name""_s""$season""e""$episod"".mp4"
-
-			# checking to see if directory for the tv-show and season is created
-			[ ! -d "$DIR_PATH/$tmpdir/$dir_name" ] && mkdir -p "$DIR_PATH/$tmpdir/$dir_name"
-			[ ! -d "$DIR_PATH/$tmpdir/$dir_name/$season_dir" ] && mkdir -p "$DIR_PATH/$tmpdir/$dir_name/$season_dir"
-
-			# move file into directory
-			mv "$DIR_PATH/$tmpdir/$ep" "$DIR_PATH/$tmpdir/$dir_name/$season_dir/$ep_name"
-		fi
-	done
-	mv "$DIR_PATH/$tmpdir/$dir_name"  "$TV_SERIES_PATH"
-}
-
 # renaming and moving to the correct directory
-rename_move () {
-		# get file identifyer
-		file_id="$(echo "$1" | sed 's#.*/##' | sed 's#.*\.##;s#.*-##')"
+move () {
+			
+	dir_name="$TITLE"
+	# checking if the destination is video or documentary
+	if [[ "$FLAG" == "-f" ]]
+	then
+		mv "$DIR_PATH/$dir_name" "$VIDEO_PATH/"
 
-		# get mp4 filesname
-		lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | grep "$file_id" | sed s'/^\.\/\(.*\)/\1/')"
-		[ -z "$lmf" ] && lmf="$(/usr/bin/find . -maxdepth 1 -type f -name "*.mp4" | sort | tail -1 | sed s'/^\.\/\(.*\)/\1/')"
-
-		if [ -n "$lmf" ]
-		then
-			pluto="$(echo "$lmf" | grep "pluto.tv")"
-			if [ -z "$pluto"]
-			then
-				# create a new name for the file
-				dir_name="$(echo "$lmf" | sed s'/^\(.*\)-.*-.*play.*/\1/g' | sed 's/\./_/g')" 
-			else
-				dir_name="$(echo "$lmf" | sed s'/^pluto.tv-\(.*\)-*plutotv.*/\1/g' | sed 's/\./_/g')" 
-			fi
-				comp_1="$(echo "${dir_name#*_}" | sed 's/_//g')"
-				comp_2="$(echo "${dir_name%%_*}" | sed 's/-//g')"
-
-				# check to see if name dir_name contains the name twice
-				if [ "$comp_1" == "$comp_2" ]
-				then
-						dir_name="$(echo "${dir_name#*_}")"
-				fi
-
-				nfn="$dir_name".mp4
-
-				# checking if the destination is video or documentary
-				if [ "$FLAG" == "-f" ]
-				then
-						[ ! -d "$VIDEO_PATH/$dir_name" ] && mkdir "$VIDEO_PATH/$dir_name"
-						[ ! -f "$VIDEO_PATH/$dir_name/$nfn" ] && mv "$DIR_PATH/$lmf" "$VIDEO_PATH/$dir_name/$nfn"
-
-				elif [ "$FLAG" == "-d" ]
-				then
-						[ ! -d "$DOC_PATH/$dir_name" ] && mkdir "$DOC_PATH/$dir_name"
-						[ ! -f "$DOC_PATH/$dir_name/$nfn" ] && mv "$DIR_PATH/$lmf" "$DOC_PATH/$dir_name/$nfn"
-
-				elif [ -z "$FLAG" ] && [ -n "$URL" ]
-				then
-						[ ! -d "$VIDEO_PATH/$dir_name" ] && mkdir "$VIDEO_PATH/$dir_name"
-						[ ! -f "$VIDEO_PATH/$dir_name/$nfn" ] && mv "$DIR_PATH/$lmf" "$VIDEO_PATH/$dir_name/$nfn"
-				fi
-		else
-				write_log "Could not find the file, lmf = $lmf" "$1"
-		fi
+	elif [[ "$FLAG" == "-d" ]]
+	then
+		mv "$DIR_PATH/$dir_name" "$DOC_PATH/"
+	elif [[ "$FLAG" == "-s" ]]
+	then 
+		cd "$DIR_PATH/$dir_name" || exit
+		seasons="$(ls *.mp4 | sed s'/.*_s\(..\).*/\1/'| uniq)"
+		for num in "${seasons[@]}"
+		do
+			mkdir "$DIR_PATH/$dir_name/season_${num}"
+			mv "$DIR_PATH/$dir_name/${dir_name}_s${num}*" "$DIR_PATH/$dir_name/season_${num}"
+		done
+		mv "$DIR_PATH/$dir_name" "$TV_SERIES_PATH/"
+	fi
 }
 
 # read the urls file
 read_download () {
 		while read -r line
 		do
-				DL="$(sort_urls "$line")"
-				eval "$DL" "$line"
-				rename_move "$line"
-				delete_line
-				write_log "$line"
-		done < "$DL_FROM_FILE_DIR/$DL_FILE"
-
-}
-
-# read the urls file
-read_dl_file_tv_shows () {
-		while read -r line
-		do
-				tmpdir="$(dl_tv_shows "$line")"
-				move_tv_shows "$tmpdir"
-				delete_line
+				create_dl_dir "$line"
+				eval "$DL" "$line" 
+				move
+				delete_line "$line"
 				write_log "$line"
 		done < "$DL_FROM_FILE_DIR/$DL_FILE"
 
@@ -245,34 +131,17 @@ cd "$DIR_PATH" || exit
 
 sort_flags
 
-# if there is no flag passed check if there is a url
-if [ -z "$FLAG" ]
-then
-		SVT_PLAY_FLAGS=" --filename {title}.{ext}"
-		sort_urls
-		eval "$DL" "$URL"
-		rename_move
-		write_log
-
-# if there is a flag
-elif [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
+# if there is no flag 
+if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]] || [[ "$FLAG" == "-s" ]]
 then
 		if [ -s "$DL_FROM_FILE_DIR/$DL_FILE" ]
 		then
         		backup_url_file
-				SVT_PLAY_FLAGS=" --filename {title}.{ext}"
 				export FLAG
 				read_download
 		else
 				echo "URLS file is empthy"
 		fi
-elif [[ "$FLAG" == "-s" ]]
-then
-        backup_url_file
-		SVT_PLAY_FLAGS=" --all-episodes --filename {title}_s{season}e{episode}.{ext}"
-        export FLAG
-		read_dl_file_tv_shows
-
 # if there is no flag and no url
 else
 		echo "No flags and no url, nothing to do."
@@ -281,3 +150,4 @@ fi
 unset VIA_USER
 unset VIA_PASS
 unset FLAG
+unset TITLE
