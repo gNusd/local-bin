@@ -12,53 +12,54 @@
 # check which flags are passed
 FLAG_1="$(echo "$1" | grep  '-')"
 FLAG_2="$(echo "$2" | grep  '-')"
-DEBUG=true
+DEBUG=false
 
-# paths to different download related stuff
-DIR_PATH="$HOME/mnt/downloads/play-dl"
-DL_FROM_FILE_DIR="$HOME/mnt/downloads/play-dl/files"
+# paths to base directory for download and files directory
+# I use the same paths for debug mode
+DIR_PATH="${HOME}/mnt/downloads/play-dl"
+DL_FROM_FILE_DIR="${DIR_PATH}/files"
 DL_FILE="urls"
 LOG_FILE="logs-dl"
 
 # date for log, I like varibles
 DATE="$(date '+%Y-%m-%d')"
 
-# select paths
+# select paths for moving the downloaded files 
 if [[ "$DEBUG" == true ]]
 then 
 	#development paths
-	VIDEO_PATH="$DL_FROM_FILE_DIR/video/filmer"
-	DOC_PATH="$DL_FROM_FILE_DIR/video/documentaries"
-	TV_SERIES_PATH="$DL_FROM_FILE_DIR/video/tv-serier"
+	VIDEO_PATH="${DL_FROM_FILE_DIR}/video/filmer"
+	DOC_PATH="${DL_FROM_FILE_DIR}/video/documentaries"
+	TV_SERIES_PATH="${DL_FROM_FILE_DIR}/video/tv-serier"
+	export LOG_FILE="DEBUG_logs-dl"
 else
-	#destination paths for video and dockumentaries
-	VIDEO_PATH="$HOME/mnt/video/filmer"
-	DOC_PATH="$HOME/mnt/video/dokumentärer/filmer"
-	TV_SERIES_PATH="$HOME/mnt/video/tv-serier"
+	#production paths
+	VIDEO_PATH="${HOME}/mnt/video/filmer"
+	DOC_PATH="${HOME}/mnt/video/dokumentärer/filmer"
+	TV_SERIES_PATH="${HOME}/mnt/video/tv-serier"
 fi
 
 # checking which flag if any is passed
 sort_flags () {
-		if [ -n "$FLAG_1" ]
+		if [[ -n "$FLAG_1" ]]
 		then
 				FLAG="$FLAG_1"
-
-		elif [ -n "$FLAG_2" ]
+		elif [[ -n "$FLAG_2" ]]
 		then
 				FLAG="$FLAG_2"
-
 		fi
 		export FLAG
 }
 
 #removing line from urls file after download is done
+# TODO: correct error from the delete_line function, it deletes the line but complains about permissions  
 delete_line () {
-		sed -i '/$1/d' "$DL_FROM_FILE_DIR/$DL_FILE"
+		sed -i '/${1}/d' "${DL_FROM_FILE_DIR}/${DL_FILE}"
 }
 
 # write to log file
 write_log () {
-		printf "%s \t %s \t [%s]\n"   "$DATE" "$1" "$FLAG" >> "$DL_FROM_FILE_DIR/$LOG_FILE"
+		printf "%s \t %s \t [%s]\n"   "$DATE" "$1" "$FLAG" >> "${DL_FROM_FILE_DIR}/${LOG_FILE}"
 }
 
 create_dl_dir () {
@@ -74,41 +75,51 @@ create_dl_dir () {
 		name="$(echo "$tv4" | sed s'/^.*program\/\(.*\)\/.*\/.*/\1/g')"
 		TITLE="$(echo "$name" | sed s'/-/_/g')"
 	fi
-	mkdir "$DIR_PATH/$TITLE" 
+	mkdir "${DIR_PATH}/${TITLE}" 
 	export TITLE
 	if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
 	then 
-		DL="svtplay-dl --subtitle --nfo --thumbnail --filename {title}.{ext} --output $TITLE"
+		DL="svtplay-dl --subtitle --nfo --filename {title}.{ext} --output ${TITLE}"
 	elif [[ "$FLAG" == "-s" ]]
 	then
-		DL="svtplay-dl --subtitle --nfo --thumbnail --all-episodes --filename {title}_s{season}e{episode}.{ext} --output $TITLE"
+		DL="svtplay-dl --subtitle --nfo --all-episodes --filename {title}_s{season}e{episode}.{ext} --output ${TITLE}"
 	fi
 	export DL
 }
+
 # renaming and moving to the correct directory
-move () {
-			
+move () {		
 	dir_name="$TITLE"
 	# checking if the destination is video or documentary
 	if [[ "$FLAG" == "-f" ]]
 	then
-		mv "$DIR_PATH/$dir_name" "$VIDEO_PATH/"
+		mv "${DIR_PATH}/${dir_name}" "${VIDEO_PATH}/"
 
 	elif [[ "$FLAG" == "-d" ]]
 	then
-		mv "$DIR_PATH/$dir_name" "$DOC_PATH/"
+		mv "${DIR_PATH}/${dir_name}" "${DOC_PATH}/"
 	elif [[ "$FLAG" == "-s" ]]
 	then 
-		cd "$DIR_PATH/$dir_name" || exit
-		seasons="$(ls *.mp4 | sed s'/.*_s\(..\).*/\1/'| uniq)"
-		title="$(ls *.mp4 | sed s'/\(.*\)_s.*/\1/'| uniq)"
-
-		for num in "${seasons[@]}"
+		cd "${DIR_PATH}/${dir_name}" || exit
+		S="$(ls *.mp4 | sed s'/.*_s\(..\).*/\1/'| uniq | tr " " "\n")"
+		title="$(ls *.mp4 | sed s'/\(.*\)_s.*/\1/'|uniq)"
+		
+		#TODO: this part should be written in a simpler way, needs a rewrite
+		n=0
+		b=1
+		for i in ${S[@]}; do let "n=n+1"; done
+		for num in $(eval echo {$b..$n});
 		do
-			mkdir "$DIR_PATH/$dir_name/season_${num}"
-			mv "$DIR_PATH/$dir_name/${title}_s${num}"* "$DIR_PATH/$dir_name/season_${num}"
+			if [[ "$num" > 9 ]]
+			then 
+				season="$num"
+			else 
+				season="0${num}"
+			fi
+			mkdir "${DIR_PATH}/${dir_name}/season_${season}"
+			mv "${DIR_PATH}/${dir_name}/${title}_s${season}"* "${DIR_PATH}/${dir_name}/season_${season}"
 		done
-		mv "$DIR_PATH/$dir_name" "$TV_SERIES_PATH/"
+		mv "${DIR_PATH}/${dir_name}" "${TV_SERIES_PATH}/"
 	fi
 }
 
@@ -120,13 +131,13 @@ read_download () {
 				eval "$DL" "$line" 
 				move
 				delete_line "$line"
-				write_log "$line"
-		done < "$DL_FROM_FILE_DIR/$DL_FILE"
+				write_log "$line" 
+		done < "${DL_FROM_FILE_DIR}/${DL_FILE}"
 
 }
 
 backup_url_file () {
-	cp "$DL_FROM_FILE_DIR/$DL_FILE" "$DL_FROM_FILE_DIR/$DL_FILE".bak
+	cp "${DL_FROM_FILE_DIR}/${DL_FILE}" "${DL_FROM_FILE_DIR}/${DL_FILE}".bak
 }
 
 cd "$DIR_PATH" || exit
@@ -136,20 +147,19 @@ sort_flags
 # if there is no flag 
 if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]] || [[ "$FLAG" == "-s" ]]
 then
-		if [ -s "$DL_FROM_FILE_DIR/$DL_FILE" ]
+		if [ -s "${DL_FROM_FILE_DIR}/${DL_FILE}" ]
 		then
         		backup_url_file
 				export FLAG
 				read_download
 		else
-				echo "URLS file is empthy"
+				echo "urls file is empthy"
 		fi
 # if there is no flag and no url
 else
 		echo "No flags and no url, nothing to do."
 fi
 
-unset VIA_USER
-unset VIA_PASS
 unset FLAG
 unset TITLE
+unset LOG_FILE

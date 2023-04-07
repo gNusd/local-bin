@@ -7,7 +7,8 @@
   #    # #   ## #    # #    # http://gnusd.xyz
   ####  #    #  ####   ####
 
-  DIR="$HOME/bin"
+  [[ -d "$HOME/bin" ]] && DIR="$HOME/bin"
+  [[ -d "$HOME/.local/bin" ]] && DIR="$HOME/.local/bin"
   if [[ "$1" == "-f" && "$3" == "-e" ]]
   then
 		  FILE="$2"
