@@ -83,7 +83,7 @@ create_dl_dir () {
 		if [[ ! -z "$svt" ]]
 		then
 			DL="svtplay-dl --subtitle --nfo --filename {title}.{ext} --output ${TITLE}"
-		elif [[ ! - z "$tv4" ]]
+		elif [[ ! -z "$tv4" ]]
 		then 
 			DL="svtplay-dl --subtitle --nfo --all-episodes --filename {title}.{ext} --output ${TITLE}"
 		fi
