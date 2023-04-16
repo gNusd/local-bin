@@ -164,7 +164,7 @@ then
 		fi
 # if there is no flag and no url
 else
-		echo "No flags and no url, nothing to do."
+		echo "No flags, nothing to do."
 fi
 
 unset DL
