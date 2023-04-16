@@ -12,7 +12,6 @@
 # check which flags are passed
 FLAG_1="$(echo "$1" | grep  '-')"
 FLAG_2="$(echo "$2" | grep  '-')"
-DEBUG=false
 
 # paths to base directory for download and files directory
 # I use the same paths for debug mode
@@ -24,21 +23,22 @@ LOG_FILE="logs-dl"
 # date for log, I like varibles
 DATE="$(date '+%Y-%m-%d')"
 
+paths_to_dirs () {
 # select paths for moving the downloaded files 
-if [[ "$DEBUG" == true ]]
-then 
-	#development paths
-	VIDEO_PATH="${DL_FROM_FILE_DIR}/video/filmer"
-	DOC_PATH="${DL_FROM_FILE_DIR}/video/documentaries"
-	TV_SERIES_PATH="${DL_FROM_FILE_DIR}/video/tv-serier"
-	export LOG_FILE="DEBUG_logs-dl"
-else
-	#production paths
-	VIDEO_PATH="${HOME}/mnt/video/filmer"
-	DOC_PATH="${HOME}/mnt/video/dokumentärer/filmer"
-	TV_SERIES_PATH="${HOME}/mnt/video/tv-serier"
-fi
-
+		if [[ "$DEBUG" == true ]]
+		then 
+			#development paths
+			VIDEO_PATH="${DL_FROM_FILE_DIR}/video/filmer"
+			DOC_PATH="${DL_FROM_FILE_DIR}/video/documentaries"
+			TV_SERIES_PATH="${DL_FROM_FILE_DIR}/video/tv-serier"
+			export LOG_FILE="DEBUG_logs-dl"
+		else
+			#production paths
+			VIDEO_PATH="${HOME}/mnt/video/filmer"
+			DOC_PATH="${HOME}/mnt/video/dokumentärer/filmer"
+			TV_SERIES_PATH="${HOME}/mnt/video/tv-serier"
+		fi
+}
 # checking which flag if any is passed
 sort_flags () {
 		if [[ -n "$FLAG_1" ]]
@@ -47,6 +47,20 @@ sort_flags () {
 		elif [[ -n "$FLAG_2" ]]
 		then
 				FLAG="$FLAG_2"
+		# check debug mode in flags 
+		fi
+		if [[ "$FLAG" == "-fd" ]] || [[ "$FLAG" == "-df" ]]
+		then
+			DEBUG=true
+			FLAG="-f"
+		elif [[ "$FLAG" == "-dd" ]]
+		then 
+			DEBUG=true
+			FLAG="-d"
+		elif [[ "$FLAG" == "-sd" ]] || [[ "$FLAG" == "-ds" ]]
+		then
+			DEBUG=true
+			FLAG="-s"
 		fi
 		export FLAG
 }
@@ -150,7 +164,9 @@ backup_url_file () {
 cd "$DIR_PATH" || exit
 
 sort_flags
+paths_to_dirs
 
+echo "$DEBUG"
 # if there is no flag 
 if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]] || [[ "$FLAG" == "-s" ]]
 then
