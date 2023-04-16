@@ -166,7 +166,6 @@ cd "$DIR_PATH" || exit
 sort_flags
 paths_to_dirs
 
-echo "$DEBUG"
 # if there is no flag 
 if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]] || [[ "$FLAG" == "-s" ]]
 then
