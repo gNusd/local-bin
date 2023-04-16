@@ -67,19 +67,26 @@ create_dl_dir () {
 	tv4="$(echo "$1" | grep tv4)"
 
 	if [[ ! -z "$svt" ]]
-	then
-		name="$(echo "$svt" | sed 's#.*/##')"
-		TITLE="$(echo "$name" | sed 's/-/_/g')"
+	then 
+		url="$svt"
 	elif [[ ! -z "$tv4" ]]
 	then
-		name="$(echo "$tv4" | sed s'/^.*program\/\(.*\)\/.*\/.*/\1/g')"
-		TITLE="$(echo "$name" | sed s'/-/_/g')"
+		url="$tv4"
 	fi
+
+	name="$(echo "$url" | sed 's#.*/##')"
+	TITLE="$(echo "$name" | sed 's/-/_/g' | sed 's/%C3%A5/å/g' | sed 's/%C3%A4/ä/g' | sed 's/%C3%B6/ö/g')"
 	mkdir "${DIR_PATH}/${TITLE}" 
 	export TITLE
 	if [[ "$FLAG" == "-f" ]] || [[ "$FLAG" == "-d" ]]
 	then 
-		DL="svtplay-dl --subtitle --nfo --filename {title}.{ext} --output ${TITLE}"
+		if [[ ! -z "$svt" ]]
+		then
+			DL="svtplay-dl --subtitle --nfo --filename {title}.{ext} --output ${TITLE}"
+		elif [[ ! - z "$tv4" ]]
+		then 
+			DL="svtplay-dl --subtitle --nfo --all-episodes --filename {title}.{ext} --output ${TITLE}"
+		fi
 	elif [[ "$FLAG" == "-s" ]]
 	then
 		DL="svtplay-dl --subtitle --nfo --all-episodes --filename {title}_s{season}e{episode}.{ext} --output ${TITLE}"
@@ -160,6 +167,7 @@ else
 		echo "No flags and no url, nothing to do."
 fi
 
+unset DL
 unset FLAG
 unset TITLE
 unset LOG_FILE
