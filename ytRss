@@ -10,13 +10,13 @@
 # FILENAME ytRss
 
 # input, current selected clipboard
-address=$(xclip -o -selection clipboard)
+address=$(wl-paste)
 
 # checks if it's a youtube channel or user
 check=$(echo "$address" | grep "youtube")
 
 # checks if $result is empthy, if so it insert blank line to clipboard and exit
-[ -z "$check" ] &&  echo "" | xclip -selection clipboard && exit
+[ -z "$check" ] &&  echo "" | wl-copy && exit
 
 # some regex to get the name of the channel create rss link with channel name
 grep "channel" <<<"$address" && feed=$(echo "$address" | sed "s/^.*\/channel\/\(.*\)/\1/g") && rss="https://www.youtube.com/feeds/videos.xml?channel_id=$feed"
@@ -25,4 +25,4 @@ grep "user" <<<"$address" && feed=$(echo "$address" | sed "s/^.*\/user\/\(.*\)/\
 
 
 # echo to xclip
-echo "$rss" | xclip -selection clipboard
+echo "$rss" | wl-copy
