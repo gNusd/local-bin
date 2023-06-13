@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+ 
+  ####  #    # #    #  ####  License: GNU GPLv3
+ #    # ##   # #    # #      Year: 2023
+ #      # #  # #    #  ####  
+ #  ### #  # # #    #      # https://github.com/gnusd
+ #    # #   ## #    # #    # http://gnusd.xyz 
+  ####  #    #  ####   ####
+ 
+# FILENAME: cliCopy
+
+cat "$1" | wl-copy

@@ -1,28 +1,66 @@
 #!/usr/bin/env bash
 
   ####  #    # #    #  ####  License: GNU GPLv3D
- #    # ##   # #    # #      Year: 2020
- #      # #  # #    #  ####
- #  ### #  # # #    #      # https://github.com/gnusd
- #    # #   ## #    # #    # http://gnusd.xyz
+  #    # ##   # #    # #      Year: 2020
+  #      # #  # #    #  ####
+  #  ### #  # # #    #      # https://github.com/gnusd
+  #    # #   ## #    # #    # http://gnusd.xyz
   ####  #    #  ####   ####
 
-DIR="$HOME/bin"
-SHEBANG="#!/usr/bin/env bash"
-FILE="$1"
-{
-		echo "$SHEBANG"
-		echo  " "
-		echo  "  ####  #    # #    #  ####  License: GNU GPLv3"
-		echo  " #    # ##   # #    # #      Year: 2020"
-		echo  " #      # #  # #    #  ####  "
-		echo  " #  ### #  # # #    #      # https://github.com/gnusd"
-		echo  " #    # #   ## #    # #    # http://gnusd.xyz "
-		echo  "  ####  #    #  ####   ####"
-		echo  " "
-		echo  "# FILENAME: $FILE"
+  if [[ -d "$HOME/bin" ]] 
+  then 
+	  DIR="$HOME/bin"
+  elif [[ -d "$HOME/.local/bin" ]] 
+  then 
+	  DIR="$HOME/.local/bin"
+  else
+	  echo "~/bin or ~/.local/bin does not exist"
+  fi
 
-} >> "$DIR/$FILE"
+  if [[ "$1" == "-f" && "$3" == "-e" ]]
+  then
+		  FILE="$2"
+		  ENVIROMENT="$4"
 
-chmod +x "$DIR/$FILE"
-nvim "$DIR/$FILE"
+  elif [[ "$1" == "-e" && "$3" == "-f" ]]
+  then
+		  ENVIROMENT="$2"
+		  FILE="$4"
+
+  elif [[ "$1" == "-f" ]]
+  then
+		  FILE="$2"
+  fi
+
+  if [[ -z "$ENVIROMENT" ]]
+  then
+		  ENVIROMENT="bash"
+  fi
+
+  SHEBANG="#!/usr/bin/env $ENVIROMENT"
+
+  write_new_file (){
+		  {
+				  echo "$SHEBANG"
+				  echo  " "
+				  echo  " #####  #    # #    #  ####  License: GNU GPLv3"
+				  echo  " #    # ##   # #    # #      Year: $(date +%Y)"
+				  echo  " #      # #  # #    #  ####  "
+				  echo  " #  ### #  # # #    #      # https://github.com/gnusd"
+				  echo  " #    # #   ## #    # #    # http://gnusd.xyz "
+				  echo  " #####  #    #  ####   ####"
+				  echo  " "
+				  echo  "# FILENAME: $FILE"
+
+		  } >> "$DIR/$FILE"
+
+  chmod +x "$DIR/$FILE"
+  nvim "$DIR/$FILE"
+}
+if [[ -z  "$FILE" ]]
+then
+		echo "-f for filename (required)"
+		echo "-e for enviroment (default bash)"
+else
+		write_new_file
+fi

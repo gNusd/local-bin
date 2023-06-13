@@ -1,3 +1,3 @@
 #!/bin/sh
 eval "$(ssh-agent -s)"
-SSH_ASKPASS=/usr/libexec/ssh/ksshaskpass ssh-add < /dev/null
+SSH_ASKPASS=/usr/bin/ksshaskpass ssh-add < /dev/null
