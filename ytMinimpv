@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-address=$(xclip -o -selection clipboard)
+address=$(wl-paste)
 result=$(echo "$address" | grep "http")
 
 [ -z "$result" ] && exit
